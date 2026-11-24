@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kunden-Dashboard</title>
+<style>
+:root{--bg:#f4f5f7;--card:#fff;--tx:#14181f;--mu:#5d6675;--ln:#e0e3e9;--ac:#0b6e4f;--ac2:#e3f3ec;--wa:#b45309;--wb:#fdf0dc;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101317;--card:#1a1f26;--tx:#eceff4;--mu:#9aa4b3;--ln:#2b323c;--ac:#4cc9a0;--ac2:#16342b;--wa:#f3b25e;--wb:#3a2c14;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101317;--card:#1a1f26;--tx:#eceff4;--mu:#9aa4b3;--ln:#2b323c;--ac:#4cc9a0;--ac2:#16342b;--wa:#f3b25e;--wb:#3a2c14;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:12px 14px 8px;border-bottom:1px solid var(--ln)}
+h1{font-size:20px;margin:0 0 8px}
+.search{width:100%;font:inherit;padding:12px 14px;border-radius:12px;border:1px solid var(--ln);background:var(--card);color:var(--tx)}
+.row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center}
+select,button{font:inherit;color:var(--tx)}
+select{padding:8px;border-radius:10px;border:1px solid var(--ln);background:var(--card);max-width:48%}
+.btn{padding:9px 14px;border-radius:10px;border:1px solid var(--ln);background:var(--card);cursor:pointer}
+.btn.p{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+:root[data-theme="dark"] .btn.p,:root:not([data-theme="light"]) .btn.p{color:#06251b}
+.cnt{color:var(--mu);font-size:14px;margin-left:auto}
+main{padding:12px 14px 40px;max-width:900px;margin:0 auto}
+.card{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:10px;margin-bottom:10px;cursor:pointer}
+.card:active{background:var(--ac2)}
+.qr{width:84px;height:84px;flex:none;border-radius:6px;overflow:hidden;background:#fff}
+.qr svg{display:block;width:100%;height:100%}
+.nr{font-weight:700;color:var(--ac)}.nm{font-weight:600}.ad{color:var(--mu);font-size:14px}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:var(--ac2);color:var(--ac);margin:4px 4px 0 0}
+.tag.w{background:var(--wb);color:var(--wa)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20;display:none;overflow:auto;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}
+.ov.on{display:block}
+.dlg{background:var(--card);border-radius:16px;max-width:560px;margin:0 auto;padding:16px}
+.big{width:min(260px,70vw);aspect-ratio:1;margin:8px auto;border-radius:8px;overflow:hidden;background:#fff}
+.big svg{display:block;width:100%;height:100%}
+dl{margin:12px 0}dt{font-size:12px;color:var(--mu);margin-top:10px}dd{margin:0;font-weight:500}
+textarea.search{min-height:72px}label.ck{display:inline-flex;gap:6px;margin:12px 14px 0 0}.btn.d{color:#c0392b}a{color:var(--ac)}.empty{text-align:center;color:var(--mu);padding:40px 0}
+#pa{display:none}
+@media print{
+ body>*:not(#pa){display:none!important}
+ body{background:#fff;color:#000}
+ #pa{display:grid!important;grid-template-columns:repeat(2,1fr);gap:10mm;padding:6mm}
+ #pa.one{grid-template-columns:1fr}
+ .lb{border:1.5px solid #000;border-radius:4mm;padding:5mm;text-align:center;break-inside:avoid;color:#000;background:#fff}
+ .lb .q{width:62mm;height:62mm;margin:3mm auto}.one .lb .q{width:110mm;height:110mm}
+ .lb .q svg{width:100%;height:100%}.lb b{font-size:16pt}.lb div{font-size:12pt}.lb small{font-size:9pt}
+}
+</style>
+</head>
+<body>
+<header>
+ <h1>📍 Kunden-Dashboard</h1>
+ <div style="display:flex;gap:8px;">
+      <input id="q" class="search" type="search" placeholder="Suchen: Nummer, Name, Ort, PLZ, Straße …" autocomplete="off" style="flex:1">
+      <button class="btn" id="scan" title="Barcode / QR scannen">📷</button>
+    </div>
+ <div class="row">
+  <button class="btn p" id="pall">Treffer drucken</button><button class="btn" id="add">＋ Neuer Kunde</button><button class="btn" id="sv">💾 Als Datei speichern</button>
+  <span class="cnt" id="cnt"></span>
+ </div>
+</header>
+<main><div id="list"></div><div class="row" style="justify-content:center"><button class="btn" id="more" hidden>Mehr anzeigen</button></div></main>
+<div class="ov" id="ov"><div class="dlg" id="dlg"></div></div>
+<div id="pa"></div>
+<script>(function(){var M={},C={};function R(n){n=n.replace("./","");if(C[n])return C[n].exports;var m=C[n]={exports:{}};M[n](m,m.exports,R);return m.exports}
+M["QRMode"]=function(module,exports,require){module.exports = {
+    MODE_NUMBER :       1 << 0,
+    MODE_ALPHA_NUM :    1 << 1,
+    MODE_8BIT_BYTE :    1 << 2,
+    MODE_KANJI :        1 << 3
+};
+
+};
+M["QRErrorCorrectLevel"]=function(module,exports,require){module.exports = {
+	L : 1,
+	M : 0,
+	Q : 3,
+	H : 2
+};
+
+
+};
+M["QRMaskPattern"]=function(module,exports,require){module.exports = {
+	PATTERN000 : 0,
+	PATTERN001 : 1,
+	PATTERN010 : 2,
+	PATTERN011 : 3,
+	PATTERN100 : 4,
+	PATTERN101 : 5,
+	PATTERN110 : 6,
+	PATTERN111 : 7
+};
+
+};
+M["QRMath"]=function(module,exports,require){var QRMath = {
+
+	glog : function(n) {
+	
+		if (n < 1) {
+			throw new Error("glog(" + n + ")");
+		}
+		
+		return QRMath.LOG_TABLE[n];
+	},
+	
+	gexp : function(n) {
+	
+		while (n < 0) {
+			n += 255;
+		}
+	
+		while (n >= 256) {
+			n -= 255;
+		}
+	
+		return QRMath.EXP_TABLE[n];
+	},
+	
+	EXP_TABLE : new Array(256),
+	
+	LOG_TABLE : new Array(256)
+
+};
+	
+for (var i = 0; i < 8; i++) {
+	QRMath.EXP_TABLE[i] = 1 << i;
+}
+for (var i = 8; i < 256; i++) {
+	QRMath.EXP_TABLE[i] = QRMath.EXP_TABLE[i - 4]
+		^ QRMath.EXP_TABLE[i - 5]
+		^ QRMath.EXP_TABLE[i - 6]
+		^ QRMath.EXP_TABLE[i - 8];
+}
+for (var i = 0; i < 255; i++) {
+	QRMath.LOG_TABLE[QRMath.EXP_TABLE[i] ] = i;
+}
+
+module.exports = QRMath;
+
+};
+M["QRPolynomial"]=function(module,exports,require){var QRMath = require('./QRMath');
+
+function QRPolynomial(num, shift) {
+	if (num.length === undefined) {
+		throw new Error(num.length + "/" + shift);
+	}
+
+	var offset = 0;
+
+	while (offset < num.length && num[offset] === 0) {
+		offset++;
+	}
+
+	this.num = new Array(num.length - offset + shift);
+	for (var i = 0; i < num.length - offset; i++) {
+		this.num[i] = num[i + offset];
+	}
+}
+
+QRPolynomial.prototype = {
+
+	get : function(index) {
+		return this.num[index];
+	},
+	
+	getLength : function() {
+		return this.num.length;
+	},
+	
+	multiply : function(e) {
+	
+		var num = new Array(this.getLength() + e.getLength() - 1);
+	
+		for (var i = 0; i < this.getLength(); i++) {
+			for (var j = 0; j < e.getLength(); j++) {
+				num[i + j] ^= QRMath.gexp(QRMath.glog(this.get(i) ) + QRMath.glog(e.get(j) ) );
+			}
+		}
+	
+		return new QRPolynomial(num, 0);
+	},
+	
+	mod : function(e) {
+	
+		if (this.getLength() - e.getLength() < 0) {
+			return this;
+		}
+	
+		var ratio = QRMath.glog(this.get(0) ) - QRMath.glog(e.get(0) );
+	
+		var num = new Array(this.getLength() );
+		
+		for (var i = 0; i < this.getLength(); i++) {
+			num[i] = this.get(i);
+		}
+		
+		for (var x = 0; x < e.getLength(); x++) {
+			num[x] ^= QRMath.gexp(QRMath.glog(e.get(x) ) + ratio);
+		}
+	
+		// recursive call
+		return new QRPolynomial(num, 0).mod(e);
+	}
+};
+
+module.exports = QRPolynomial;
+
+};
+M["QRUtil"]=function(module,exports,require){var QRMode = require('./QRMode');
+var QRPolynomial = require('./QRPolynomial');
+var QRMath = require('./QRMath');
+var QRMaskPattern = require('./QRMaskPattern');
+
+var QRUtil = {
+
+    PATTERN_POSITION_TABLE : [
+        [],
+        [6, 18],
+        [6, 22],
+        [6, 26],
+        [6, 30],
+        [6, 34],
+        [6, 22, 38],
+        [6, 24, 42],
+        [6, 26, 46],
+        [6, 28, 50],
+        [6, 30, 54],        
+        [6, 32, 58],
+        [6, 34, 62],
+        [6, 26, 46, 66],
+        [6, 26, 48, 70],
+        [6, 26, 50, 74],
+        [6, 30, 54, 78],
+        [6, 30, 56, 82],
+        [6, 30, 58, 86],
+        [6, 34, 62, 90],
+        [6, 28, 50, 72, 94],
+        [6, 26, 50, 74, 98],
+        [6, 30, 54, 78, 102],
+        [6, 28, 54, 80, 106],
+        [6, 32, 58, 84, 110],
+        [6, 30, 58, 86, 114],
+        [6, 34, 62, 90, 118],
+        [6, 26, 50, 74, 98, 122],
+        [6, 30, 54, 78, 102, 126],
+        [6, 26, 52, 78, 104, 130],
+        [6, 30, 56, 82, 108, 134],
+        [6, 34, 60, 86, 112, 138],
+        [6, 30, 58, 86, 114, 142],
+        [6, 34, 62, 90, 118, 146],
+        [6, 30, 54, 78, 102, 126, 150],
+        [6, 24, 50, 76, 102, 128, 154],
+        [6, 28, 54, 80, 106, 132, 158],
+        [6, 32, 58, 84, 110, 136, 162],
+        [6, 26, 54, 82, 110, 138, 166],
+        [6, 30, 58, 86, 114, 142, 170]
+    ],
+
+    G15 : (1 << 10) | (1 << 8) | (1 << 5) | (1 << 4) | (1 << 2) | (1 << 1) | (1 << 0),
+    G18 : (1 << 12) | (1 << 11) | (1 << 10) | (1 << 9) | (1 << 8) | (1 << 5) | (1 << 2) | (1 << 0),
+    G15_MASK : (1 << 14) | (1 << 12) | (1 << 10)    | (1 << 4) | (1 << 1),
+
+    getBCHTypeInfo : function(data) {
+        var d = data << 10;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) >= 0) {
+            d ^= (QRUtil.G15 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G15) ) );    
+        }
+        return ( (data << 10) | d) ^ QRUtil.G15_MASK;
+    },
+
+    getBCHTypeNumber : function(data) {
+        var d = data << 12;
+        while (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) >= 0) {
+            d ^= (QRUtil.G18 << (QRUtil.getBCHDigit(d) - QRUtil.getBCHDigit(QRUtil.G18) ) );    
+        }
+        return (data << 12) | d;
+    },
+
+    getBCHDigit : function(data) {
+
+        var digit = 0;
+
+        while (data !== 0) {
+            digit++;
+            data >>>= 1;
+        }
+
+        return digit;
+    },
+
+    getPatternPosition : function(typeNumber) {
+        return QRUtil.PATTERN_POSITION_TABLE[typeNumber - 1];
+    },
+
+    getMask : function(maskPattern, i, j) {
+        
+        switch (maskPattern) {
+            
+        case QRMaskPattern.PATTERN000 : return (i + j) % 2 === 0;
+        case QRMaskPattern.PATTERN001 : return i % 2 === 0;
+        case QRMaskPattern.PATTERN010 : return j % 3 === 0;
+        case QRMaskPattern.PATTERN011 : return (i + j) % 3 === 0;
+        case QRMaskPattern.PATTERN100 : return (Math.floor(i / 2) + Math.floor(j / 3) ) % 2 === 0;
+        case QRMaskPattern.PATTERN101 : return (i * j) % 2 + (i * j) % 3 === 0;
+        case QRMaskPattern.PATTERN110 : return ( (i * j) % 2 + (i * j) % 3) % 2 === 0;
+        case QRMaskPattern.PATTERN111 : return ( (i * j) % 3 + (i + j) % 2) % 2 === 0;
+
+        default :
+            throw new Error("bad maskPattern:" + maskPattern);
+        }
+    },
+
+    getErrorCorrectPolynomial : function(errorCorrectLength) {
+
+        var a = new QRPolynomial([1], 0);
+
+        for (var i = 0; i < errorCorrectLength; i++) {
+            a = a.multiply(new QRPolynomial([1, QRMath.gexp(i)], 0) );
+        }
+
+        return a;
+    },
+
+    getLengthInBits : function(mode, type) {
+
+        if (1 <= type && type < 10) {
+
+            // 1 - 9
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 10;
+            case QRMode.MODE_ALPHA_NUM  : return 9;
+            case QRMode.MODE_8BIT_BYTE  : return 8;
+            case QRMode.MODE_KANJI      : return 8;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 27) {
+
+            // 10 - 26
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 12;
+            case QRMode.MODE_ALPHA_NUM  : return 11;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 10;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else if (type < 41) {
+
+            // 27 - 40
+
+            switch(mode) {
+            case QRMode.MODE_NUMBER     : return 14;
+            case QRMode.MODE_ALPHA_NUM  : return 13;
+            case QRMode.MODE_8BIT_BYTE  : return 16;
+            case QRMode.MODE_KANJI      : return 12;
+            default :
+                throw new Error("mode:" + mode);
+            }
+
+        } else {
+            throw new Error("type:" + type);
+        }
+    },
+
+    getLostPoint : function(qrCode) {
+        
+        var moduleCount = qrCode.getModuleCount();
+        var lostPoint = 0;
+        var row = 0; 
+        var col = 0;
+
+        
+        // LEVEL1
+        
+        for (row = 0; row < moduleCount; row++) {
+
+            for (col = 0; col < moduleCount; col++) {
+
+                var sameCount = 0;
+                var dark = qrCode.isDark(row, col);
+
+                for (var r = -1; r <= 1; r++) {
+
+                    if (row + r < 0 || moduleCount <= row + r) {
+                        continue;
+                    }
+
+                    for (var c = -1; c <= 1; c++) {
+
+                        if (col + c < 0 || moduleCount <= col + c) {
+                            continue;
+                        }
+
+                        if (r === 0 && c === 0) {
+                            continue;
+                        }
+
+                        if (dark === qrCode.isDark(row + r, col + c) ) {
+                            sameCount++;
+                        }
+                    }
+                }
+
+                if (sameCount > 5) {
+                    lostPoint += (3 + sameCount - 5);
+                }
+            }
+        }
+
+        // LEVEL2
+
+        for (row = 0; row < moduleCount - 1; row++) {
+            for (col = 0; col < moduleCount - 1; col++) {
+                var count = 0;
+                if (qrCode.isDark(row,     col    ) ) count++;
+                if (qrCode.isDark(row + 1, col    ) ) count++;
+                if (qrCode.isDark(row,     col + 1) ) count++;
+                if (qrCode.isDark(row + 1, col + 1) ) count++;
+                if (count === 0 || count === 4) {
+                    lostPoint += 3;
+                }
+            }
+        }
+
+        // LEVEL3
+
+        for (row = 0; row < moduleCount; row++) {
+            for (col = 0; col < moduleCount - 6; col++) {
+                if (qrCode.isDark(row, col) && 
+                        !qrCode.isDark(row, col + 1) && 
+                         qrCode.isDark(row, col + 2) && 
+                         qrCode.isDark(row, col + 3) && 
+                         qrCode.isDark(row, col + 4) && 
+                        !qrCode.isDark(row, col + 5) && 
+                         qrCode.isDark(row, col + 6) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount - 6; row++) {
+                if (qrCode.isDark(row, col) &&
+                        !qrCode.isDark(row + 1, col) &&
+                         qrCode.isDark(row + 2, col) &&
+                         qrCode.isDark(row + 3, col) &&
+                         qrCode.isDark(row + 4, col) &&
+                        !qrCode.isDark(row + 5, col) &&
+                         qrCode.isDark(row + 6, col) ) {
+                    lostPoint += 40;
+                }
+            }
+        }
+
+        // LEVEL4
+        
+        var darkCount = 0;
+
+        for (col = 0; col < moduleCount; col++) {
+            for (row = 0; row < moduleCount; row++) {
+                if (qrCode.isDark(row, col) ) {
+                    darkCount++;
+                }
+            }
+        }
+        
+        var ratio = Math.abs(100 * darkCount / moduleCount / moduleCount - 50) / 5;
+        lostPoint += ratio * 10;
+
+        return lostPoint;       
+    }
+
+};
+
+module.exports = QRUtil;
+
+};
+M["QRRSBlock"]=function(module,exports,require){var QRErrorCorrectLevel = require('./QRErrorCorrectLevel');
+
+function QRRSBlock(totalCount, dataCount) {
+	this.totalCount = totalCount;
+	this.dataCount  = dataCount;
+}
+
+QRRSBlock.RS_BLOCK_TABLE = [
+
+	// L
+	// M
+	// Q
+	// H
+
+	// 1
+	[1, 26, 19],
+	[1, 26, 16],
+	[1, 26, 13],
+	[1, 26, 9],
+	
+	// 2
+	[1, 44, 34],
+	[1, 44, 28],
+	[1, 44, 22],
+	[1, 44, 16],
+
+	// 3
+	[1, 70, 55],
+	[1, 70, 44],
+	[2, 35, 17],
+	[2, 35, 13],
+
+	// 4		
+	[1, 100, 80],
+	[2, 50, 32],
+	[2, 50, 24],
+	[4, 25, 9],
+	
+	// 5
+	[1, 134, 108],
+	[2, 67, 43],
+	[2, 33, 15, 2, 34, 16],
+	[2, 33, 11, 2, 34, 12],
+	
+	// 6
+	[2, 86, 68],
+	[4, 43, 27],
+	[4, 43, 19],
+	[4, 43, 15],
+	
+	// 7		
+	[2, 98, 78],
+	[4, 49, 31],
+	[2, 32, 14, 4, 33, 15],
+	[4, 39, 13, 1, 40, 14],
+	
+	// 8
+	[2, 121, 97],
+	[2, 60, 38, 2, 61, 39],
+	[4, 40, 18, 2, 41, 19],
+	[4, 40, 14, 2, 41, 15],
+	
+	// 9
+	[2, 146, 116],
+	[3, 58, 36, 2, 59, 37],
+	[4, 36, 16, 4, 37, 17],
+	[4, 36, 12, 4, 37, 13],
+	
+	// 10		
+	[2, 86, 68, 2, 87, 69],
+	[4, 69, 43, 1, 70, 44],
+	[6, 43, 19, 2, 44, 20],
+	[6, 43, 15, 2, 44, 16],
+
+	// 11
+	[4, 101, 81],
+	[1, 80, 50, 4, 81, 51],
+	[4, 50, 22, 4, 51, 23],
+	[3, 36, 12, 8, 37, 13],
+
+	// 12
+	[2, 116, 92, 2, 117, 93],
+	[6, 58, 36, 2, 59, 37],
+	[4, 46, 20, 6, 47, 21],
+	[7, 42, 14, 4, 43, 15],
+
+	// 13
+	[4, 133, 107],
+	[8, 59, 37, 1, 60, 38],
+	[8, 44, 20, 4, 45, 21],
+	[12, 33, 11, 4, 34, 12],
+
+	// 14
+	[3, 145, 115, 1, 146, 116],
+	[4, 64, 40, 5, 65, 41],
+	[11, 36, 16, 5, 37, 17],
+	[11, 36, 12, 5, 37, 13],
+
+	// 15
+	[5, 109, 87, 1, 110, 88],
+	[5, 65, 41, 5, 66, 42],
+	[5, 54, 24, 7, 55, 25],
+	[11, 36, 12],
+
+	// 16
+	[5, 122, 98, 1, 123, 99],
+	[7, 73, 45, 3, 74, 46],
+	[15, 43, 19, 2, 44, 20],
+	[3, 45, 15, 13, 46, 16],
+
+	// 17
+	[1, 135, 107, 5, 136, 108],
+	[10, 74, 46, 1, 75, 47],
+	[1, 50, 22, 15, 51, 23],
+	[2, 42, 14, 17, 43, 15],
+
+	// 18
+	[5, 150, 120, 1, 151, 121],
+	[9, 69, 43, 4, 70, 44],
+	[17, 50, 22, 1, 51, 23],
+	[2, 42, 14, 19, 43, 15],
+
+	// 19
+	[3, 141, 113, 4, 142, 114],
+	[3, 70, 44, 11, 71, 45],
+	[17, 47, 21, 4, 48, 22],
+	[9, 39, 13, 16, 40, 14],
+
+	// 20
+	[3, 135, 107, 5, 136, 108],
+	[3, 67, 41, 13, 68, 42],
+	[15, 54, 24, 5, 55, 25],
+	[15, 43, 15, 10, 44, 16],
+
+	// 21
+	[4, 144, 116, 4, 145, 117],
+	[17, 68, 42],
+	[17, 50, 22, 6, 51, 23],
+	[19, 46, 16, 6, 47, 17],
+
+	// 22
+	[2, 139, 111, 7, 140, 112],
+	[17, 74, 46],
+	[7, 54, 24, 16, 55, 25],
+	[34, 37, 13],
+
+	// 23
+	[4, 151, 121, 5, 152, 122],
+	[4, 75, 47, 14, 76, 48],
+	[11, 54, 24, 14, 55, 25],
+	[16, 45, 15, 14, 46, 16],
+
+	// 24
+	[6, 147, 117, 4, 148, 118],
+	[6, 73, 45, 14, 74, 46],
+	[11, 54, 24, 16, 55, 25],
+	[30, 46, 16, 2, 47, 17],
+
+	// 25
+	[8, 132, 106, 4, 133, 107],
+	[8, 75, 47, 13, 76, 48],
+	[7, 54, 24, 22, 55, 25],
+	[22, 45, 15, 13, 46, 16],
+
+	// 26
+	[10, 142, 114, 2, 143, 115],
+	[19, 74, 46, 4, 75, 47],
+	[28, 50, 22, 6, 51, 23],
+	[33, 46, 16, 4, 47, 17],
+
+	// 27
+	[8, 152, 122, 4, 153, 123],
+	[22, 73, 45, 3, 74, 46],
+	[8, 53, 23, 26, 54, 24],
+	[12, 45, 15, 28, 46, 16],
+
+	// 28
+	[3, 147, 117, 10, 148, 118],
+	[3, 73, 45, 23, 74, 46],
+	[4, 54, 24, 31, 55, 25],
+	[11, 45, 15, 31, 46, 16],
+
+	// 29
+	[7, 146, 116, 7, 147, 117],
+	[21, 73, 45, 7, 74, 46],
+	[1, 53, 23, 37, 54, 24],
+	[19, 45, 15, 26, 46, 16],
+
+	// 30
+	[5, 145, 115, 10, 146, 116],
+	[19, 75, 47, 10, 76, 48],
+	[15, 54, 24, 25, 55, 25],
+	[23, 45, 15, 25, 46, 16],
+
+	// 31
+	[13, 145, 115, 3, 146, 116],
+	[2, 74, 46, 29, 75, 47],
+	[42, 54, 24, 1, 55, 25],
+	[23, 45, 15, 28, 46, 16],
+
+	// 32
+	[17, 145, 115],
+	[10, 74, 46, 23, 75, 47],
+	[10, 54, 24, 35, 55, 25],
+	[19, 45, 15, 35, 46, 16],
+
+	// 33
+	[17, 145, 115, 1, 146, 116],
+	[14, 74, 46, 21, 75, 47],
+	[29, 54, 24, 19, 55, 25],
+	[11, 45, 15, 46, 46, 16],
+
+	// 34
+	[13, 145, 115, 6, 146, 116],
+	[14, 74, 46, 23, 75, 47],
+	[44, 54, 24, 7, 55, 25],
+	[59, 46, 16, 1, 47, 17],
+
+	// 35
+	[12, 151, 121, 7, 152, 122],
+	[12, 75, 47, 26, 76, 48],
+	[39, 54, 24, 14, 55, 25],
+	[22, 45, 15, 41, 46, 16],
+
+	// 36
+	[6, 151, 121, 14, 152, 122],
+	[6, 75, 47, 34, 76, 48],
+	[46, 54, 24, 10, 55, 25],
+	[2, 45, 15, 64, 46, 16],
+
+	// 37
+	[17, 152, 122, 4, 153, 123],
+	[29, 74, 46, 14, 75, 47],
+	[49, 54, 24, 10, 55, 25],
+	[24, 45, 15, 46, 46, 16],
+
+	// 38
+	[4, 152, 122, 18, 153, 123],
+	[13, 74, 46, 32, 75, 47],
+	[48, 54, 24, 14, 55, 25],
+	[42, 45, 15, 32, 46, 16],
+
+	// 39
+	[20, 147, 117, 4, 148, 118],
+	[40, 75, 47, 7, 76, 48],
+	[43, 54, 24, 22, 55, 25],
+	[10, 45, 15, 67, 46, 16],
+
+	// 40
+	[19, 148, 118, 6, 149, 119],
+	[18, 75, 47, 31, 76, 48],
+	[34, 54, 24, 34, 55, 25],
+	[20, 45, 15, 61, 46, 16]
+];
+
+QRRSBlock.getRSBlocks = function(typeNumber, errorCorrectLevel) {
+	
+	var rsBlock = QRRSBlock.getRsBlockTable(typeNumber, errorCorrectLevel);
+	
+	if (rsBlock === undefined) {
+		throw new Error("bad rs block @ typeNumber:" + typeNumber + "/errorCorrectLevel:" + errorCorrectLevel);
+	}
+
+	var length = rsBlock.length / 3;
+	
+	var list = [];
+	
+	for (var i = 0; i < length; i++) {
+
+		var count = rsBlock[i * 3 + 0];
+		var totalCount = rsBlock[i * 3 + 1];
+		var dataCount  = rsBlock[i * 3 + 2];
+
+		for (var j = 0; j < count; j++) {
+			list.push(new QRRSBlock(totalCount, dataCount) );	
+		}
+	}
+	
+	return list;
+};
+
+QRRSBlock.getRsBlockTable = function(typeNumber, errorCorrectLevel) {
+
+	switch(errorCorrectLevel) {
+	case QRErrorCorrectLevel.L :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 0];
+	case QRErrorCorrectLevel.M :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 1];
+	case QRErrorCorrectLevel.Q :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 2];
+	case QRErrorCorrectLevel.H :
+		return QRRSBlock.RS_BLOCK_TABLE[(typeNumber - 1) * 4 + 3];
+	default :
+		return undefined;
+	}
+};
+
+module.exports = QRRSBlock;
+
+};
+M["QRBitBuffer"]=function(module,exports,require){function QRBitBuffer() {
+	this.buffer = [];
+	this.length = 0;
+}
+
+QRBitBuffer.prototype = {
+
+	get : function(index) {
+		var bufIndex = Math.floor(index / 8);
+		return ( (this.buffer[bufIndex] >>> (7 - index % 8) ) & 1) == 1;
+	},
+	
+	put : function(num, length) {
+		for (var i = 0; i < length; i++) {
+			this.putBit( ( (num >>> (length - i - 1) ) & 1) == 1);
+		}
+	},
+	
+	getLengthInBits : function() {
+		return this.length;
+	},
+	
+	putBit : function(bit) {
+	
+		var bufIndex = Math.floor(this.length / 8);
+		if (this.buffer.length <= bufIndex) {
+			this.buffer.push(0);
+		}
+	
+		if (bit) {
+			this.buffer[bufIndex] |= (0x80 >>> (this.length % 8) );
+		}
+	
+		this.length++;
+	}
+};
+
+module.exports = QRBitBuffer;
+
+};
+M["QR8bitByte"]=function(module,exports,require){var QRMode = require('./QRMode');
+
+function QR8bitByte(data) {
+	this.mode = QRMode.MODE_8BIT_BYTE;
+	this.data = data;
+}
+
+QR8bitByte.prototype = {
+
+	getLength : function() {
+		return this.data.length;
+	},
+	
+	write : function(buffer) {
+		for (var i = 0; i < this.data.length; i++) {
+			// not JIS ...
+			buffer.put(this.data.charCodeAt(i), 8);
+		}
+	}
+};
+
+module.exports = QR8bitByte;
+
+};
+M["index"]=function(module,exports,require){//---------------------------------------------------------------------
+// QRCode for JavaScript
+//
+// Copyright (c) 2009 Kazuhiko Arase
+//
+// URL: http://www.d-project.com/
+//
+// Licensed under the MIT license:
+//   http://www.opensource.org/licenses/mit-license.php
+//
+// The word "QR Code" is registered trademark of 
+// DENSO WAVE INCORPORATED
+//   http://www.denso-wave.com/qrcode/faqpatent-e.html
+//
+//---------------------------------------------------------------------
+// Modified to work in node for this project (and some refactoring)
+//---------------------------------------------------------------------
+
+var QR8bitByte = require('./QR8bitByte');
+var QRUtil = require('./QRUtil');
+var QRPolynomial = require('./QRPolynomial');
+var QRRSBlock = require('./QRRSBlock');
+var QRBitBuffer = require('./QRBitBuffer');
+
+function QRCode(typeNumber, errorCorrectLevel) {
+	this.typeNumber = typeNumber;
+	this.errorCorrectLevel = errorCorrectLevel;
+	this.modules = null;
+	this.moduleCount = 0;
+	this.dataCache = null;
+	this.dataList = [];
+}
+
+QRCode.prototype = {
+	
+	addData : function(data) {
+		var newData = new QR8bitByte(data);
+		this.dataList.push(newData);
+		this.dataCache = null;
+	},
+	
+	isDark : function(row, col) {
+		if (row < 0 || this.moduleCount <= row || col < 0 || this.moduleCount <= col) {
+			throw new Error(row + "," + col);
+		}
+		return this.modules[row][col];
+	},
+
+	getModuleCount : function() {
+		return this.moduleCount;
+	},
+	
+	make : function() {
+		// Calculate automatically typeNumber if provided is < 1
+		if (this.typeNumber < 1 ){
+			var typeNumber = 1;
+			for (typeNumber = 1; typeNumber < 40; typeNumber++) {
+				var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, this.errorCorrectLevel);
+
+				var buffer = new QRBitBuffer();
+				var totalDataCount = 0;
+				for (var i = 0; i < rsBlocks.length; i++) {
+					totalDataCount += rsBlocks[i].dataCount;
+				}
+
+				for (var x = 0; x < this.dataList.length; x++) {
+					var data = this.dataList[x];
+					buffer.put(data.mode, 4);
+					buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+					data.write(buffer);
+				}
+				if (buffer.getLengthInBits() <= totalDataCount * 8)
+					break;
+			}
+			this.typeNumber = typeNumber;
+		}
+		this.makeImpl(false, this.getBestMaskPattern() );
+	},
+	
+	makeImpl : function(test, maskPattern) {
+		
+		this.moduleCount = this.typeNumber * 4 + 17;
+		this.modules = new Array(this.moduleCount);
+		
+		for (var row = 0; row < this.moduleCount; row++) {
+			
+			this.modules[row] = new Array(this.moduleCount);
+			
+			for (var col = 0; col < this.moduleCount; col++) {
+				this.modules[row][col] = null;//(col + row) % 3;
+			}
+		}
+	
+		this.setupPositionProbePattern(0, 0);
+		this.setupPositionProbePattern(this.moduleCount - 7, 0);
+		this.setupPositionProbePattern(0, this.moduleCount - 7);
+		this.setupPositionAdjustPattern();
+		this.setupTimingPattern();
+		this.setupTypeInfo(test, maskPattern);
+		
+		if (this.typeNumber >= 7) {
+			this.setupTypeNumber(test);
+		}
+	
+		if (this.dataCache === null) {
+			this.dataCache = QRCode.createData(this.typeNumber, this.errorCorrectLevel, this.dataList);
+		}
+	
+		this.mapData(this.dataCache, maskPattern);
+	},
+
+	setupPositionProbePattern : function(row, col)  {
+		
+		for (var r = -1; r <= 7; r++) {
+			
+			if (row + r <= -1 || this.moduleCount <= row + r) continue;
+			
+			for (var c = -1; c <= 7; c++) {
+				
+				if (col + c <= -1 || this.moduleCount <= col + c) continue;
+				
+				if ( (0 <= r && r <= 6 && (c === 0 || c === 6) ) || 
+                     (0 <= c && c <= 6 && (r === 0 || r === 6) ) || 
+                     (2 <= r && r <= 4 && 2 <= c && c <= 4) ) {
+					this.modules[row + r][col + c] = true;
+				} else {
+					this.modules[row + r][col + c] = false;
+				}
+			}		
+		}		
+	},
+	
+	getBestMaskPattern : function() {
+	
+		var minLostPoint = 0;
+		var pattern = 0;
+	
+		for (var i = 0; i < 8; i++) {
+			
+			this.makeImpl(true, i);
+	
+			var lostPoint = QRUtil.getLostPoint(this);
+	
+			if (i === 0 || minLostPoint >  lostPoint) {
+				minLostPoint = lostPoint;
+				pattern = i;
+			}
+		}
+	
+		return pattern;
+	},
+	
+	createMovieClip : function(target_mc, instance_name, depth) {
+	
+		var qr_mc = target_mc.createEmptyMovieClip(instance_name, depth);
+		var cs = 1;
+	
+		this.make();
+
+		for (var row = 0; row < this.modules.length; row++) {
+			
+			var y = row * cs;
+			
+			for (var col = 0; col < this.modules[row].length; col++) {
+	
+				var x = col * cs;
+				var dark = this.modules[row][col];
+			
+				if (dark) {
+					qr_mc.beginFill(0, 100);
+					qr_mc.moveTo(x, y);
+					qr_mc.lineTo(x + cs, y);
+					qr_mc.lineTo(x + cs, y + cs);
+					qr_mc.lineTo(x, y + cs);
+					qr_mc.endFill();
+				}
+			}
+		}
+		
+		return qr_mc;
+	},
+
+	setupTimingPattern : function() {
+		
+		for (var r = 8; r < this.moduleCount - 8; r++) {
+			if (this.modules[r][6] !== null) {
+				continue;
+			}
+			this.modules[r][6] = (r % 2 === 0);
+		}
+	
+		for (var c = 8; c < this.moduleCount - 8; c++) {
+			if (this.modules[6][c] !== null) {
+				continue;
+			}
+			this.modules[6][c] = (c % 2 === 0);
+		}
+	},
+	
+	setupPositionAdjustPattern : function() {
+	
+		var pos = QRUtil.getPatternPosition(this.typeNumber);
+		
+		for (var i = 0; i < pos.length; i++) {
+		
+			for (var j = 0; j < pos.length; j++) {
+			
+				var row = pos[i];
+				var col = pos[j];
+				
+				if (this.modules[row][col] !== null) {
+					continue;
+				}
+				
+				for (var r = -2; r <= 2; r++) {
+				
+					for (var c = -2; c <= 2; c++) {
+					
+						if (Math.abs(r) === 2 || 
+                            Math.abs(c) === 2 ||
+                            (r === 0 && c === 0) ) {
+							this.modules[row + r][col + c] = true;
+						} else {
+							this.modules[row + r][col + c] = false;
+						}
+					}
+				}
+			}
+		}
+	},
+	
+	setupTypeNumber : function(test) {
+	
+		var bits = QRUtil.getBCHTypeNumber(this.typeNumber);
+        var mod;
+	
+		for (var i = 0; i < 18; i++) {
+			mod = (!test && ( (bits >> i) & 1) === 1);
+			this.modules[Math.floor(i / 3)][i % 3 + this.moduleCount - 8 - 3] = mod;
+		}
+	
+		for (var x = 0; x < 18; x++) {
+			mod = (!test && ( (bits >> x) & 1) === 1);
+			this.modules[x % 3 + this.moduleCount - 8 - 3][Math.floor(x / 3)] = mod;
+		}
+	},
+	
+	setupTypeInfo : function(test, maskPattern) {
+	
+		var data = (this.errorCorrectLevel << 3) | maskPattern;
+		var bits = QRUtil.getBCHTypeInfo(data);
+        var mod;
+	
+		// vertical		
+		for (var v = 0; v < 15; v++) {
+	
+			mod = (!test && ( (bits >> v) & 1) === 1);
+	
+			if (v < 6) {
+				this.modules[v][8] = mod;
+			} else if (v < 8) {
+				this.modules[v + 1][8] = mod;
+			} else {
+				this.modules[this.moduleCount - 15 + v][8] = mod;
+			}
+		}
+	
+		// horizontal
+		for (var h = 0; h < 15; h++) {
+	
+			mod = (!test && ( (bits >> h) & 1) === 1);
+			
+			if (h < 8) {
+				this.modules[8][this.moduleCount - h - 1] = mod;
+			} else if (h < 9) {
+				this.modules[8][15 - h - 1 + 1] = mod;
+			} else {
+				this.modules[8][15 - h - 1] = mod;
+			}
+		}
+	
+		// fixed module
+		this.modules[this.moduleCount - 8][8] = (!test);
+	
+	},
+	
+	mapData : function(data, maskPattern) {
+		
+		var inc = -1;
+		var row = this.moduleCount - 1;
+		var bitIndex = 7;
+		var byteIndex = 0;
+		
+		for (var col = this.moduleCount - 1; col > 0; col -= 2) {
+	
+			if (col === 6) col--;
+	
+			while (true) {
+	
+				for (var c = 0; c < 2; c++) {
+					
+					if (this.modules[row][col - c] === null) {
+						
+						var dark = false;
+	
+						if (byteIndex < data.length) {
+							dark = ( ( (data[byteIndex] >>> bitIndex) & 1) === 1);
+						}
+	
+						var mask = QRUtil.getMask(maskPattern, row, col - c);
+	
+						if (mask) {
+							dark = !dark;
+						}
+						
+						this.modules[row][col - c] = dark;
+						bitIndex--;
+	
+						if (bitIndex === -1) {
+							byteIndex++;
+							bitIndex = 7;
+						}
+					}
+				}
+								
+				row += inc;
+	
+				if (row < 0 || this.moduleCount <= row) {
+					row -= inc;
+					inc = -inc;
+					break;
+				}
+			}
+		}
+		
+	}
+
+};
+
+QRCode.PAD0 = 0xEC;
+QRCode.PAD1 = 0x11;
+
+QRCode.createData = function(typeNumber, errorCorrectLevel, dataList) {
+	
+	var rsBlocks = QRRSBlock.getRSBlocks(typeNumber, errorCorrectLevel);
+	
+	var buffer = new QRBitBuffer();
+	
+	for (var i = 0; i < dataList.length; i++) {
+		var data = dataList[i];
+		buffer.put(data.mode, 4);
+		buffer.put(data.getLength(), QRUtil.getLengthInBits(data.mode, typeNumber) );
+		data.write(buffer);
+	}
+
+	// calc num max data.
+	var totalDataCount = 0;
+	for (var x = 0; x < rsBlocks.length; x++) {
+		totalDataCount += rsBlocks[x].dataCount;
+	}
+
+	if (buffer.getLengthInBits() > totalDataCount * 8) {
+		throw new Error("code length overflow. (" + 
+            buffer.getLengthInBits() + 
+            ">" +  
+            totalDataCount * 8 + 
+            ")");
+	}
+
+	// end code
+	if (buffer.getLengthInBits() + 4 <= totalDataCount * 8) {
+		buffer.put(0, 4);
+	}
+
+	// padding
+	while (buffer.getLengthInBits() % 8 !== 0) {
+		buffer.putBit(false);
+	}
+
+	// padding
+	while (true) {
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD0, 8);
+		
+		if (buffer.getLengthInBits() >= totalDataCount * 8) {
+			break;
+		}
+		buffer.put(QRCode.PAD1, 8);
+	}
+
+	return QRCode.createBytes(buffer, rsBlocks);
+};
+
+QRCode.createBytes = function(buffer, rsBlocks) {
+
+	var offset = 0;
+	
+	var maxDcCount = 0;
+	var maxEcCount = 0;
+	
+	var dcdata = new Array(rsBlocks.length);
+	var ecdata = new Array(rsBlocks.length);
+	
+	for (var r = 0; r < rsBlocks.length; r++) {
+
+		var dcCount = rsBlocks[r].dataCount;
+		var ecCount = rsBlocks[r].totalCount - dcCount;
+
+		maxDcCount = Math.max(maxDcCount, dcCount);
+		maxEcCount = Math.max(maxEcCount, ecCount);
+		
+		dcdata[r] = new Array(dcCount);
+		
+		for (var i = 0; i < dcdata[r].length; i++) {
+			dcdata[r][i] = 0xff & buffer.buffer[i + offset];
+		}
+		offset += dcCount;
+		
+		var rsPoly = QRUtil.getErrorCorrectPolynomial(ecCount);
+		var rawPoly = new QRPolynomial(dcdata[r], rsPoly.getLength() - 1);
+
+		var modPoly = rawPoly.mod(rsPoly);
+		ecdata[r] = new Array(rsPoly.getLength() - 1);
+		for (var x = 0; x < ecdata[r].length; x++) {
+            var modIndex = x + modPoly.getLength() - ecdata[r].length;
+			ecdata[r][x] = (modIndex >= 0)? modPoly.get(modIndex) : 0;
+		}
+
+	}
+	
+	var totalCodeCount = 0;
+	for (var y = 0; y < rsBlocks.length; y++) {
+		totalCodeCount += rsBlocks[y].totalCount;
+	}
+
+	var data = new Array(totalCodeCount);
+	var index = 0;
+
+	for (var z = 0; z < maxDcCount; z++) {
+		for (var s = 0; s < rsBlocks.length; s++) {
+			if (z < dcdata[s].length) {
+				data[index++] = dcdata[s][z];
+			}
+		}
+	}
+
+	for (var xx = 0; xx < maxEcCount; xx++) {
+		for (var t = 0; t < rsBlocks.length; t++) {
+			if (xx < ecdata[t].length) {
+				data[index++] = ecdata[t][xx];
+			}
+		}
+	}
+
+	return data;
+
+};
+
+module.exports = QRCode;
+
+};
+window.QRCodeLib=R("index")})();</script>
+<script id="dat" type="application/json">{"stamp":1795549410518,"cols":["Markt","Marktname","PLZ","Ort","Straße","Abladestelle","Vorwahl","Telefon","Bezirksleiter","Max LKW früh","Max LKW tagsüber","Rampe (Übersicht)","Hubwagen vorhanden","Max. Anfahrhöhe (m)","Lieferzeit","Besonderheit","Kundeninfo1","Kundeninfo2","Kundeninfo3"],"rows":[{"Markt":"70107","Marktname":"Ralf Bellefroid e.K.","PLZ":"52146","Ort":"Würselen","Straße":"Krefelder Str. 12","Abladestelle":"70107-0010","Vorwahl":"02405","Telefon":"4528985","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC IN KüHLUNGEINSCHLIES","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70123","Marktname":"W. Bachem GmbH","PLZ":"53115","Ort":"Bonn","Straße":"Sternenburgstr. 2-4","Abladestelle":"70123-0010","Vorwahl":"0228","Telefon":"219879","Bezirksleiter":"Philipp Draht","Max LKW früh":"54","Max LKW tagsüber":"54","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70127","Marktname":"Bellefroid-Huppertz OHG","PLZ":"52080","Ort":"Aachen","Straße":"Haarbachtalstr. 9-11","Abladestelle":"70127-0010","Vorwahl":"0241","Telefon":"161165","Bezirksleiter":"Stefan Bougie","Max LKW früh":"30","Max LKW tagsüber":"30","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NICHT VOR 6 UHR ABLADEN","Kundeninfo2":"Z-Sackmitnahme","Kundeninfo3":""},{"Markt":"70135","Marktname":"Johann Breidohr GmbH","PLZ":"51469","Ort":"Bergisch Gladbach","Straße":"De-Gasperi-Str. 1","Abladestelle":"70135-0010","Vorwahl":"02202","Telefon":"936420","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"\"Z-Sackmitnahme\"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70135","Marktname":"Johann Breidohr GmbH","PLZ":"51469","Ort":"Bergisch Gladbach","Straße":"De-Gasperi-Str. 1","Abladestelle":"70135-0020","Vorwahl":"02202","Telefon":"936420","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70147","Marktname":"Markus Breuer e.K.","PLZ":"53332","Ort":"Bornheim","Straße":"Walberberger Str. 59","Abladestelle":"70147-0010","Vorwahl":"02227","Telefon":"9295885","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"DRINGEND NICHT VOR 06:30 UHR ABLADEN!!!","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70168","Marktname":"Bellefroid-Huppertz oHG","PLZ":"52080","Ort":"Aachen","Straße":"Alt-Haarener Str. 170","Abladestelle":"70168-0010","Vorwahl":"0241","Telefon":"1890777","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"max 48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"ggf Solo tagsüber, Parkplatz","Kundeninfo1":"FC Anlieferung NICHT vor 06:00 Uhr","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70179","Marktname":"Timo Boden Lebensmittel KG","PLZ":"53175","Ort":"Bonn","Straße":"Mittelstraße 6-10","Abladestelle":"70179-0010","Vorwahl":"0228","Telefon":"3670096","Bezirksleiter":"Frank Reif","Max LKW früh":"30","Max LKW tagsüber":"30","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"3,8","Lieferzeit":"ganztägig","Besonderheit":"nur flacher Solo!!!","Kundeninfo1":"von strasse rückwärts unter Torbogen","Kundeninfo2":"\"Z-Sackmitnahme\"","Kundeninfo3":""},{"Markt":"70181","Marktname":"Breidohr Handels GmbH","PLZ":"40724","Ort":"Hilden","Straße":"Walder Str. 99","Abladestelle":"70181-0010","Vorwahl":"02103","Telefon":"88466","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Nicht über Walderst.!Nur über Mühlenbach","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70181","Marktname":"Breidohr Handels GmbH","PLZ":"40724","Ort":"Hilden","Straße":"Walder Str. 99","Abladestelle":"70181-0020","Vorwahl":"02103","Telefon":"88466","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70199","Marktname":"Daub KG","PLZ":"50858","Ort":"Köln","Straße":"Jungbluthgasse 9","Abladestelle":"70199-0010","Vorwahl":"0221","Telefon":"486184","Bezirksleiter":"Stefan Bougie","Max LKW früh":"48","Max LKW tagsüber":"30","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"nur FC Tour mit 48er!!!","Kundeninfo1":"HOLUNDERWEG GESPERRT","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70205","Marktname":"Jörg Buchner EDEKA Buchner","PLZ":"53639","Ort":"Königswinter","Straße":"Raiffeisenstr. 11","Abladestelle":"70205-0010","Vorwahl":"02244","Telefon":"875916","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"54","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"TS max 54er wegen Schule!!!","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70227","Marktname":"LEH Bonus OHG","PLZ":"42799","Ort":"Leichlingen","Straße":"Solinger Str. 7","Abladestelle":"70227-0010","Vorwahl":"02174","Telefon":"3113","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70236","Marktname":"Breidohr´s Fleisch- und","PLZ":"40724","Ort":"Hilden","Straße":"Walder Str. 99","Abladestelle":"70236-0010","Vorwahl":"02103","Telefon":"88466","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70237","Marktname":"Breidohr´s Fleisch- und","PLZ":"51469","Ort":"Bergisch Gladbach","Straße":"De-Gasperi-Str. 1","Abladestelle":"70237-0010","Vorwahl":"02202","Telefon":"936420","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70264","Marktname":"Mitten im Leben GmbH","PLZ":"51469","Ort":"Bergisch Gladbach","Straße":"Neue Nußbaumer Str. 2","Abladestelle":"70264-0010","Vorwahl":"02202","Telefon":"9647513","Bezirksleiter":"Rene Piefenbrink","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACKMITNAHME","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70281","Marktname":"EDEKA-Markt J. Engels GbR","PLZ":"53842","Ort":"Troisdorf","Straße":"Hauptstr. 142-144","Abladestelle":"70281-0010","Vorwahl":"02241","Telefon":"408800","Bezirksleiter":"Frank Reif","Max LKW früh":"48","Max LKW tagsüber":"30","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"3,8","Lieferzeit":"ganztägig","Besonderheit":"nur flacher Solo mit TS!!!","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70283","Marktname":"Knell GmbH","PLZ":"41542","Ort":"Dormagen","Straße":"Heerstr. 9-11","Abladestelle":"70283-0010","Vorwahl":"02133","Telefon":"299131","Bezirksleiter":"Stefan Bougie","Max LKW früh":"54","Max LKW tagsüber":"54","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC ERST AB 6 UHR ABLADENDRINGEND","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70287","Marktname":"E-Center Engels Marsdorf GmbH","PLZ":"50859","Ort":"Köln","Straße":"Unter Linden 286","Abladestelle":"70287-0010","Vorwahl":"0221","Telefon":"98743752","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC NICHT VOR 06:00 UHR ABLADEN;LEERGUT","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70293","Marktname":"Axel Schäfer KG","PLZ":"52068","Ort":"Aachen","Straße":"Elsassstr. 139","Abladestelle":"70293-0010","Vorwahl":"0241","Telefon":"99799621","Bezirksleiter":"Rene Piefenbrink","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NIE VOR 6UHR ABLAD!ACHTUNG GRÜNEPLAKETE","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70301","Marktname":"Breidohr´s Frische-Center","PLZ":"51503","Ort":"Rösrath","Straße":"Hans-Böckler-Str. 1-3","Abladestelle":"70301-0010","Vorwahl":"02205","Telefon":"897210","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70301","Marktname":"Breidohr´s Frische-Center","PLZ":"51503","Ort":"Rösrath","Straße":"Hans-Böckler-Str. 1-3","Abladestelle":"70301-0020","Vorwahl":"02205","Telefon":"897210","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70302","Marktname":"Breidohr´s Fleisch- und","PLZ":"51503","Ort":"Rösrath","Straße":"Hans-Böckler-Str. 1-3","Abladestelle":"70302-0010","Vorwahl":"02205","Telefon":"90835","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70308","Marktname":"Norbert Geldermann KG","PLZ":"52457","Ort":"Aldenhoven","Straße":"Am Alten Bahnhof 2","Abladestelle":"70308-0010","Vorwahl":"02464","Telefon":"905190","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70311","Marktname":"Uwe Fett","PLZ":"53498","Ort":"Bad Breisig","Straße":"Zehnerstr. 22 b","Abladestelle":"70311-0010","Vorwahl":"02633","Telefon":"470660","Bezirksleiter":"Christoph Kessel","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"MORGENS UNBEDINGT LEERGUT ENTSORGEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70330","Marktname":"Bernhard Engels GmbH","PLZ":"52396","Ort":"Heimbach","Straße":"Schönblick 1a","Abladestelle":"70330-0010","Vorwahl":"02446","Telefon":"3009","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70371","Marktname":"EDEKA Cevik","PLZ":"52223","Ort":"Stolberg","Straße":"Prämienstr. 194","Abladestelle":"70371-0010","Vorwahl":"02402","Telefon":"1261454","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"ANFAHRT üBER \"SCHNEIDMüHLE\" VERBOTEN!!!","Kundeninfo2":"Z-Sackmitnahme","Kundeninfo3":""},{"Markt":"70380","Marktname":"Steffen Osterkamp e.K.","PLZ":"56470","Ort":"Bad Marienberg","Straße":"Marienberger Str. 26a","Abladestelle":"70380-0010","Vorwahl":"02661","Telefon":"9173626","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"LIEFERADRESSE IST BAHNHOFSTRASSE","Kundeninfo2":"\"Z-Sackmitnahme\"","Kundeninfo3":""},{"Markt":"70400","Marktname":"EDEKA Klein","PLZ":"53604","Ort":"Bad Honnef","Straße":"Himberger Str. 35","Abladestelle":"70400-0010","Vorwahl":"02224","Telefon":"8606","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Anhänger nicht beim Kunden abstellen","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70407","Marktname":"Hubert Dick GmbH & Co. KG","PLZ":"51580","Ort":"Reichshof","Straße":"Hauptstr. 26-28","Abladestelle":"70407-0010","Vorwahl":"02296","Telefon":"257","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70417","Marktname":"EDEKA Laura Bachem","PLZ":"53121","Ort":"Bonn","Straße":"Vorgebirgsbahnweg 3","Abladestelle":"70417-0010","Vorwahl":"0228","Telefon":"92894504","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Zufahrt über die Grootestr","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70418","Marktname":"E-Center Engels Marsdorf GmbH","PLZ":"50858","Ort":"Köln","Straße":"Horbellerstr. 2-4","Abladestelle":"70418-0010","Vorwahl":"02234","Telefon":"2766360","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70420","Marktname":"Blomeier Frischmarkt KG","PLZ":"50259","Ort":"Pulheim","Straße":"Dorfplatz 1","Abladestelle":"70420-0010","Vorwahl":"02238","Telefon":"52700","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70422","Marktname":"Blomeier Frischmarkt KG","PLZ":"50765","Ort":"Köln","Straße":"Frohnhofstr. 26","Abladestelle":"70422-0010","Vorwahl":"0221","Telefon":"5904941","Bezirksleiter":"Stefan Bougie","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC ERST AB 6UHR ABLADEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70440","Marktname":"Edeka Aktiv Markt Maik Jakobs","PLZ":"57635","Ort":"Weyerbusch","Straße":"Kölner Str. 25","Abladestelle":"70440-0010","Vorwahl":"02686","Telefon":"989062","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70448","Marktname":"Paul Josef Juchem","PLZ":"53424","Ort":"Remagen","Straße":"Schulstr. 4","Abladestelle":"70448-0010","Vorwahl":"02642","Telefon":"22724","Bezirksleiter":"nicht betreut","Max LKW früh":"30","Max LKW tagsüber":"30","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70451","Marktname":"Lebensmittelmarkt","PLZ":"56566","Ort":"Neuwied","Straße":"Am Königsgericht 1","Abladestelle":"70451-0010","Vorwahl":"02622","Telefon":"903297","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70464","Marktname":"Jörg Buchner","PLZ":"53639","Ort":"Königswinter","Straße":"Am Offermannsberg 5","Abladestelle":"70464-0010","Vorwahl":"02244","Telefon":"8778463","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC NICHT VOR 6 UHR ANLIEFERN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70478","Marktname":"Matthias Kipping","PLZ":"53225","Ort":"Bonn","Straße":"Clemensstr. 39-41","Abladestelle":"70478-0010","Vorwahl":"0228","Telefon":"467060","Bezirksleiter":"Philipp Draht","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC HINTER ROLLTOR ABSTELLEN,DRINGEND","Kundeninfo2":"Z-Sackmitnahme","Kundeninfo3":""},{"Markt":"70483","Marktname":"Matthias Kipping","PLZ":"53773","Ort":"Hennef","Straße":"Sanddornweg 14","Abladestelle":"70483-0010","Vorwahl":"02242","Telefon":"869626","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Nicht vor 6 H anliefern und Leergut ent.","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70488","Marktname":"Frischecenter Kipping OHG","PLZ":"53127","Ort":"Bonn","Straße":"Im Mühlenbach 2A","Abladestelle":"70488-0010","Vorwahl":"0228","Telefon":"253233","Bezirksleiter":"Philipp Draht","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"KOMPLETTE FRISCHE INS KÜHLHAUS STELLEN","Kundeninfo2":"\"Z-Sackmitnahme\"","Kundeninfo3":""},{"Markt":"70501","Marktname":"Aktiv-Märkte Klein-Heßling GmbH","PLZ":"53797","Ort":"Lohmar","Straße":"Birker Str. 2","Abladestelle":"70501-0010","Vorwahl":"02246","Telefon":"913666","Bezirksleiter":"Christoph Kessel","Max LKW früh":"54","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NICHT ÜBER DAS NACHBARGRUNDSTÜCK FAHREN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70514","Marktname":"Thomas Klein","PLZ":"50389","Ort":"Wesseling","Straße":"Burgstr. 36","Abladestelle":"70514-0010","Vorwahl":"02236","Telefon":"923012","Bezirksleiter":"Stefan Bougie","Max LKW früh":"48","Max LKW tagsüber":"30","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"nur FC Tour mit 48er!!!","Kundeninfo1":"RETOUREN GARAGE BRUCHS","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70538","Marktname":"Gerald Gans e.K.","PLZ":"51103","Ort":"Köln","Straße":"Ostheimer Str. 42","Abladestelle":"70538-0010","Vorwahl":"0221","Telefon":"8008235","Bezirksleiter":"Stefan Bougie","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70540","Marktname":"Gerald Gans Köln Pesch e.K.","PLZ":"50767","Ort":"Köln","Straße":"Mengenicher Str. 26","Abladestelle":"70540-0010","Vorwahl":"0221","Telefon":"5906862","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACKMITNAHME","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70544","Marktname":"Inklusa gGmbH CAP-Markt Hillscheid","PLZ":"56204","Ort":"Hillscheid","Straße":"Bahnhofstr. 40-42","Abladestelle":"70544-0010","Vorwahl":"02624","Telefon":"9493150","Bezirksleiter":"nicht betreut","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Nie vor 5 Uhr Anliefern","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70548","Marktname":"A. Mülln e.K.","PLZ":"52353","Ort":"Düren","Straße":"Zollhausstr. 53","Abladestelle":"70548-0010","Vorwahl":"02421","Telefon":"889260","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACKMITNAHME","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70564","Marktname":"Bilgin Levent e. K.","PLZ":"41468","Ort":"Neuss","Straße":"Rheinfährstr. 117c","Abladestelle":"70564-0010","Vorwahl":"02131","Telefon":"2011751","Bezirksleiter":"Rene Piefenbrink","Max LKW früh":"","Max LKW tagsüber":"","Rampe (Übersicht)":"","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70566","Marktname":"Käthe Thomas","PLZ":"53773","Ort":"Hennef","Straße":"Pleistalstr. 29","Abladestelle":"70566-0010","Vorwahl":"02242","Telefon":"5415","Bezirksleiter":"Annette Dickhausen","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70567","Marktname":"Heinrich-Haus GmbH","PLZ":"53562","Ort":"St. Katharinen","Straße":"Linzer Str. 90","Abladestelle":"70567-0010","Vorwahl":"02622","Telefon":"8921282","Bezirksleiter":"Christoph Kessel","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70570","Marktname":"Gebrüder Hein GmbH & Co. KG","PLZ":"51149","Ort":"Köln","Straße":"Gilgaustr. 29","Abladestelle":"70570-0010","Vorwahl":"02203","Telefon":"911410","Bezirksleiter":"Christoph Kessel","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"ENTLADEVERBOT VOR 06:00 UHR","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70571","Marktname":"Hein TS GmbH","PLZ":"51143","Ort":"Köln","Straße":"Houdainer Str. 2","Abladestelle":"70571-0010","Vorwahl":"02203","Telefon":"988720","Bezirksleiter":"Christoph Kessel","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACK MITNAHME","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70572","Marktname":"Hein TS zweite GmbH","PLZ":"51147","Ort":"Köln","Straße":"St.-Sebastianus-Str. 14","Abladestelle":"70572-0010","Vorwahl":"02203","Telefon":"103330","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70573","Marktname":"Gebrüder Hein GmbH & Co. KG","PLZ":"51149","Ort":"Köln","Straße":"Gilgaustr. 24","Abladestelle":"70573-0010","Vorwahl":"02203","Telefon":"911410","Bezirksleiter":"Christoph Kessel","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70582","Marktname":"Markus Hetzenegger","PLZ":"51465","Ort":"Bergisch Gladbach","Straße":"Herkenrather Str. 70","Abladestelle":"70582-0010","Vorwahl":"02202","Telefon":"34133","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC Anlieferung Alarmanlagenchip benutzen","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70601","Marktname":"Stefan Hoffmann e.K.","PLZ":"56593","Ort":"Horhausen","Straße":"Landblum 1","Abladestelle":"70601-0010","Vorwahl":"02687","Telefon":"559","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"AB 5:30H NICHT MEHR SCHARF SCHALTEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70627","Marktname":"Markus Hetzenegger KG","PLZ":"51429","Ort":"Bergisch Gladbach","Straße":"Straßen 51-55","Abladestelle":"70627-0010","Vorwahl":"02204","Telefon":"982929","Bezirksleiter":"Frank Reif","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"EXTRALEERGUT SOLL MIT GENOMMEN WERDEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70661","Marktname":"Andreas Wirths KG","PLZ":"51702","Ort":"Bergneustadt","Straße":"Kölnerstr. 113","Abladestelle":"70661-0010","Vorwahl":"02261","Telefon":"5015161","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"AB 06:00 UHR ABLADEN / KUNDE VOR ORT","Kundeninfo2":"\"Z-Sackmitnahme\"","Kundeninfo3":""},{"Markt":"70664","Marktname":"Dirk Mülln Fil.","PLZ":"53773","Ort":"Hennef","Straße":"Pantaleon-Schmitz-Platz 1","Abladestelle":"70664-0010","Vorwahl":"02248","Telefon":"912520","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70676","Marktname":"Leonhard Plum Handels KG","PLZ":"52511","Ort":"Geilenkirchen","Straße":"Thomashofstr. 8-14","Abladestelle":"70676-0010","Vorwahl":"02462","Telefon":"3786","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70680","Marktname":"Stefan Storost KG","PLZ":"52249","Ort":"Eschweiler","Straße":"Bonhöfferstr. 6 - 8","Abladestelle":"70680-0010","Vorwahl":"02403","Telefon":"9510920","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70686","Marktname":"Oliver Fischenich KG","PLZ":"50129","Ort":"Bergheim","Straße":"Dansweilerstr. 3","Abladestelle":"70686-0010","Vorwahl":"02238","Telefon":"8453110","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"ANFAHRT FC ÜBER BRAUWEILER STR6UHR ERST","Kundeninfo2":"Z-Sackmitnahme","Kundeninfo3":""},{"Markt":"70696","Marktname":"R. Romano e.K.","PLZ":"50937","Ort":"Köln","Straße":"Berrenrather Str. 339","Abladestelle":"70696-0010","Vorwahl":"0221","Telefon":"411022","Bezirksleiter":"Stefan Bougie","Max LKW früh":"54","Max LKW tagsüber":"54","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70697","Marktname":"Kirsten Mohr e.K.","PLZ":"53347","Ort":"Alfter","Straße":"Am Herrenwingert 11","Abladestelle":"70697-0010","Vorwahl":"02222","Telefon":"931087","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC IN KÜHLRAUM/LEERG.ENTSOR.ACHTUNGALARM","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70704","Marktname":"Mohr Frischecenter KG","PLZ":"53119","Ort":"Bonn","Straße":"Bornheimerstr. 162","Abladestelle":"70704-0010","Vorwahl":"0228","Telefon":"9086950","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"ANF ÜBER OBIFC FRÜH LIEF.SCHLÜSSEL","Kundeninfo2":"Z-Sackmitnahme","Kundeninfo3":""},{"Markt":"70704","Marktname":"Mohr Frischecenter KG","PLZ":"53119","Ort":"Bonn","Straße":"Bornheimerstr. 162","Abladestelle":"70704-0020","Vorwahl":"0228","Telefon":"9086950","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"ANLIEFERUNG ÜBER OBI","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70718","Marktname":"Bernd Prämassing e.K.","PLZ":"53518","Ort":"Adenau","Straße":"Dr.-Creutz-Platz 18","Abladestelle":"70718-0010","Vorwahl":"02691","Telefon":"930022","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70719","Marktname":"Mohr Frischecenter KG","PLZ":"53119","Ort":"Bonn","Straße":"Lievelingsweg 84","Abladestelle":"70719-0010","Vorwahl":"0228","Telefon":"9678390","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"AB 6 UHR EINER DA","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70727","Marktname":"Frischmarkt Interbieten GmbH","PLZ":"53919","Ort":"Weilerswist","Straße":"Bonner Str. 6","Abladestelle":"70727-0010","Vorwahl":"02254","Telefon":"6002962","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70739","Marktname":"Heinz-Jürgen Baumann","PLZ":"50170","Ort":"Kerpen","Straße":"Zum Schlichshof 3","Abladestelle":"70739-0010","Vorwahl":"02275","Telefon":"914346","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"BEI FROST/EIS NICHT ZU FRÜH FC LIEFERN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70784","Marktname":"Alexandra Holland e.K.","PLZ":"52477","Ort":"Alsdorf","Straße":"Eschweiler Str. 2a","Abladestelle":"70784-0010","Vorwahl":"02404","Telefon":"9579700","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70785","Marktname":"Klein-Hessling Siegburg GmbH","PLZ":"53721","Ort":"Siegburg","Straße":"Luisenstr. 88b","Abladestelle":"70785-0010","Vorwahl":"02241","Telefon":"1201555","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70789","Marktname":"Dirk Schüller","PLZ":"53179","Ort":"Bonn","Straße":"Konstantinstr. 4","Abladestelle":"70789-0010","Vorwahl":"0228","Telefon":"363893","Bezirksleiter":"nicht betreut","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACKMITNAHME,26.5-30.5 NICHT VOR 5:30H","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70791","Marktname":"Klein-Heßling Lohmar GmbH","PLZ":"53797","Ort":"Lohmar","Straße":"Hauptstr. 39","Abladestelle":"70791-0010","Vorwahl":"02246","Telefon":"1009843","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NICHT VOR 6 UHR","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70795","Marktname":"Theo Schüren GmbH","PLZ":"53127","Ort":"Bonn","Straße":"Röttgener Str. 69","Abladestelle":"70795-0010","Vorwahl":"0228","Telefon":"281773","Bezirksleiter":"Philipp Draht","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC Anlieferung in Kühlhaus rein stellen","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70800","Marktname":"Caritas-Werkstätten","PLZ":"56414","Ort":"Hundsangen","Straße":"Hauptstr. 49","Abladestelle":"70800-0010","Vorwahl":"06435","Telefon":"5480031","Bezirksleiter":"nicht betreut","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACKMITNAHME","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70830","Marktname":"Die Kippings GmbH & Co. KG","PLZ":"50999","Ort":"Köln","Straße":"Bahnhofstr. 2- 4","Abladestelle":"70830-0010","Vorwahl":"02236","Telefon":"68083","Bezirksleiter":"Philipp Draht","Max LKW früh":"54","Max LKW tagsüber":"54","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NICHT VOR 7 UHR ABLADEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70882","Marktname":"Frischmarkt Steffens GmbH","PLZ":"50827","Ort":"Köln","Straße":"Ossendorfer Str. 306","Abladestelle":"70882-0010","Vorwahl":"0221","Telefon":"9561266","Bezirksleiter":"Christoph Kessel","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70883","Marktname":"Esser Lebensmittel KG","PLZ":"41812","Ort":"Erkelenz","Straße":"Karolingerring 24","Abladestelle":"70883-0010","Vorwahl":"02431","Telefon":"8060661","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70903","Marktname":"Dirk Steilen Euskirchen e.K","PLZ":"53881","Ort":"Euskirchen","Straße":"Christian Schäferstr. 24","Abladestelle":"70903-0010","Vorwahl":"02255","Telefon":"9590017","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NICHT ÜBER MÖNSCHSTR. ANLIEFERNN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70929","Marktname":"Rudolf Vogl oHG","PLZ":"53115","Ort":"Bonn","Straße":"Karlstr. 33","Abladestelle":"70929-0010","Vorwahl":"0228","Telefon":"18411721","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"ALARM MIT CHIP AUSSCHALTEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70929","Marktname":"Rudolf Vogl oHG","PLZ":"53115","Ort":"Bonn","Straße":"Karlstr. 33","Abladestelle":"70929-0020","Vorwahl":"0228","Telefon":"18411721","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70931","Marktname":"Rudolf Vogl OHG","PLZ":"53123","Ort":"Bonn","Straße":"Basketsring 3","Abladestelle":"70931-0010","Vorwahl":"0228","Telefon":"41076777","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70931","Marktname":"Rudolf Vogl OHG","PLZ":"53123","Ort":"Bonn","Straße":"Basketsring 3","Abladestelle":"70931-0050","Vorwahl":"0228","Telefon":"41076777","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70933","Marktname":"Stefan Storost KG","PLZ":"52249","Ort":"Eschweiler","Straße":"Am Fließ 6","Abladestelle":"70933-0010","Vorwahl":"02403","Telefon":"979199","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70934","Marktname":"Oliver Steilen","PLZ":"53115","Ort":"Bonn","Straße":"Königstr. 79-81","Abladestelle":"70934-0010","Vorwahl":"0228","Telefon":"217780","Bezirksleiter":"Philipp Draht","Max LKW früh":"30","Max LKW tagsüber":"30","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACKMITNAHME","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70936","Marktname":"Eulog gGmbH","PLZ":"53881","Ort":"Euskirchen","Straße":"Kuchenheimer Str. 77","Abladestelle":"70936-0010","Vorwahl":"02251","Telefon":"57102","Bezirksleiter":"nicht betreut","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FRISCHE AB 6 UHR ANLIEFERBAR","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70941","Marktname":"Eulog gGmbH Getränkemarkt","PLZ":"53881","Ort":"Euskirchen","Straße":"Kuchenheimer Str. 77","Abladestelle":"70941-0010","Vorwahl":"02253","Telefon":"9322931","Bezirksleiter":"nicht betreut","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70942","Marktname":"Markus Hetzenegger KG","PLZ":"51429","Ort":"Bergisch Gladbach","Straße":"Moitzfeld 72","Abladestelle":"70942-0010","Vorwahl":"02204","Telefon":"9689875","Bezirksleiter":"Frank Reif","Max LKW früh":"30","Max LKW tagsüber":"30","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACKMITNAHME Nie vor 6 Uhr abladen","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70942","Marktname":"Markus Hetzenegger KG","PLZ":"51429","Ort":"Bergisch Gladbach","Straße":"Moitzfeld 72","Abladestelle":"70942-0080","Vorwahl":"02204","Telefon":"9689875","Bezirksleiter":"Frank Reif","Max LKW früh":"30","Max LKW tagsüber":"30","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70944","Marktname":"Vogel & Lewandowski KG","PLZ":"52355","Ort":"Düren","Straße":"Renkerstr. 61","Abladestelle":"70944-0010","Vorwahl":"02421","Telefon":"2063944","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70952","Marktname":"Markus Bell e.K.","PLZ":"53332","Ort":"Bornheim","Straße":"Peter-Hausmann-Platz 1","Abladestelle":"70952-0010","Vorwahl":"02222","Telefon":"649400","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Nicht vor 5 Uhr anliefern!","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70952","Marktname":"Markus Bell e.K.","PLZ":"53332","Ort":"Bornheim","Straße":"Peter-Hausmann-Platz 1","Abladestelle":"70952-0020","Vorwahl":"02222","Telefon":"649400","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70952","Marktname":"Markus Bell e.K.","PLZ":"53332","Ort":"Bornheim","Straße":"Peter-Hausmann-Platz 1","Abladestelle":"70952-0060","Vorwahl":"02222","Telefon":"649400","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70955","Marktname":"Dennis Rosenzweig e.K.","PLZ":"52382","Ort":"Niederzier","Straße":"Niederzierer Straße 86","Abladestelle":"70955-0010","Vorwahl":"02428","Telefon":"8025971","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC NACHLADUNG ERST AB 7 UHR LIEFERN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70974","Marktname":"Hetzenegger Dürscheid GmbH & Co. KG","PLZ":"51515","Ort":"Kürten-Dürscheid","Straße":"Wipperfürther Straße 165","Abladestelle":"70974-0010","Vorwahl":"02207","Telefon":"7040744","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"\"Z-Sackmitnahme\"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70988","Marktname":"Ralf Breil e.K.","PLZ":"53340","Ort":"Meckenheim","Straße":"Heinz-Gottschalk-Str. 1","Abladestelle":"70988-0010","Vorwahl":"02225","Telefon":"7040448","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NICHT VOR 6 UHR,ABER BIS 6:30H ANLIEFERN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"70992","Marktname":"Frischmarkt Zickuhr GmbH","PLZ":"50931","Ort":"Köln","Straße":"Dürener Str. 199 - 203","Abladestelle":"70992-0010","Vorwahl":"0221","Telefon":"9402106","Bezirksleiter":"Christoph Kessel","Max LKW früh":"48","Max LKW tagsüber":"30","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"3,6","Lieferzeit":"ganztägig","Besonderheit":"nur flacher Solo!!! FC 48er!!!","Kundeninfo1":"FC nicht vor 7 Uhr, Ware übergeben!","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71003","Marktname":"Sylvia Nickel e.K.","PLZ":"51103","Ort":"Köln","Straße":"Bochumer Str. 2","Abladestelle":"71003-0010","Vorwahl":"0221","Telefon":"8702101","Bezirksleiter":"Stefan Bougie","Max LKW früh":"30","Max LKW tagsüber":"30","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71009","Marktname":"Rath Frische Center KG","PLZ":"41515","Ort":"Grevenbroich","Straße":"Am Hammerwerk 24","Abladestelle":"71009-0010","Vorwahl":"02181","Telefon":"758836","Bezirksleiter":"Laura Tholen","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71012","Marktname":"Romano Frischecenter KG","PLZ":"50997","Ort":"Köln Godorf","Straße":"Godorfer Hauptstr. 165","Abladestelle":"71012-0010","Vorwahl":"02236","Telefon":"3853330","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Zufahrt zum Markt über Otto-Hahn Str.","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71026","Marktname":"Dirk Goerzen e.K.","PLZ":"56072","Ort":"Koblenz","Straße":"Am Metternicher Bahnhof 11","Abladestelle":"71026-0010","Vorwahl":"0261","Telefon":"29179897","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71027","Marktname":"Iris Jung e.K.","PLZ":"53809","Ort":"Ruppichteroth","Straße":"Brölstr. 2d","Abladestelle":"71027-0010","Vorwahl":"02295","Telefon":"5151","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"EW-MITNAHME / Leergut komplett entsorgen","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71028","Marktname":"Fuhrmann Lebensmittelmarkt KG","PLZ":"56410","Ort":"Montabaur","Straße":"Stauffenbergallee 1","Abladestelle":"71028-0010","Vorwahl":"02602","Telefon":"1068883","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Anfahrt über Koblenzer Str. 25-27","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71032","Marktname":"Norbert Geldermann KG","PLZ":"52072","Ort":"Aachen","Straße":"Roderweg 9-12","Abladestelle":"71032-0010","Vorwahl":"0241","Telefon":"18059485","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71034","Marktname":"Jansen KG","PLZ":"52499","Ort":"Baesweiler","Straße":"Im Kirchwinkel 5 F","Abladestelle":"71034-0010","Vorwahl":"02401","Telefon":"4039","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Zwingend NICHT vor 06:00 Uhr abladen!!!","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71049","Marktname":"Keller GmbH","PLZ":"56746","Ort":"Kempenich","Straße":"Burgstr. 4","Abladestelle":"71049-0010","Vorwahl":"02655","Telefon":"960100","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"DRINGEND NICHT VOR 6 UHR ABLADEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71050","Marktname":"Dino Eicker e.K","PLZ":"52159","Ort":"Roetgen","Straße":"Rosentalstr. 38-40","Abladestelle":"71050-0010","Vorwahl":"02471","Telefon":"9216370","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Nie vor 6 Uhr abladen","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71053","Marktname":"Klein KG","PLZ":"50389","Ort":"Wesseling","Straße":"Berggeiststr. 20","Abladestelle":"71053-0010","Vorwahl":"02232","Telefon":"9399690","Bezirksleiter":"Stefan Bougie","Max LKW früh":"","Max LKW tagsüber":"","Rampe (Übersicht)":"","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71066","Marktname":"Kötter Handels GmbH","PLZ":"53819","Ort":"Neunkirchen","Straße":"Zeithstr. 146","Abladestelle":"71066-0010","Vorwahl":"02247","Telefon":"97760","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71067","Marktname":"Christoph Plum Handels KG","PLZ":"52441","Ort":"Linnich","Straße":"Erkelenzer Str. 1","Abladestelle":"71067-0010","Vorwahl":"02462","Telefon":"6041","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-Sackmitnahme","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71068","Marktname":"Marilo Plum GmbH & Co. KG","PLZ":"41836","Ort":"Hückelhoven","Straße":"Parkhofstr. 53","Abladestelle":"71068-0010","Vorwahl":"02433","Telefon":"9808830","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-Sackmitnahme","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71069","Marktname":"Kusnezow & Lewandowski KG","PLZ":"52379","Ort":"Langerwehe","Straße":"Am vorderen Steinchen 2","Abladestelle":"71069-0010","Vorwahl":"02423","Telefon":"4065826","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"00:00 – 00:00","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71080","Marktname":"Sebastian Hein e.K.","PLZ":"50389","Ort":"Wesseling","Straße":"Westring 15","Abladestelle":"71080-0010","Vorwahl":"02236","Telefon":"8963970","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NIE VOR 6 Uhr abladen. ABSOLUT VERBOTEN!","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71082","Marktname":"Feinkost Stolle Bonn e.K.","PLZ":"53175","Ort":"Bonn-Bad Godesberg","Straße":"Annaberger Str. 148","Abladestelle":"71082-0010","Vorwahl":"0228","Telefon":"315545","Bezirksleiter":"Philipp Draht","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-Sackmitnahme","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71089","Marktname":"C. Plum Titz Handels KG","PLZ":"52445","Ort":"Titz","Straße":"Heinrich-Gossen-Str. 3","Abladestelle":"71089-0010","Vorwahl":"02463","Telefon":"997351","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"EI FROST FC HINTER 2. TÜR","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71090","Marktname":"C. Plum Titz Handels KG Getränke","PLZ":"52445","Ort":"Titz","Straße":"Heinrich-Gossen-Str. 5","Abladestelle":"71090-0010","Vorwahl":"02463","Telefon":"998121","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"BITTE HUBWAGEN ODER AMEISE MITNEHMEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71124","Marktname":"Yannic Weeke e.K.","PLZ":"50674","Ort":"Köln","Straße":"Hohenstaufenring 28","Abladestelle":"71124-0010","Vorwahl":"0221","Telefon":"80058700","Bezirksleiter":"Philipp Draht","Max LKW früh":"30","Max LKW tagsüber":"30","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71126","Marktname":"Tim Vogel e.K.","PLZ":"52355","Ort":"Düren","Straße":"Valencienner Str. 150-152","Abladestelle":"71126-0010","Vorwahl":"02421","Telefon":"781260","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71127","Marktname":"Levent Bilgin e.K.","PLZ":"50181","Ort":"Bedburg","Straße":"Lindenstraße 4","Abladestelle":"71127-0010","Vorwahl":"02272","Telefon":"4075100","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71128","Marktname":"Rosenzweig KG","PLZ":"52351","Ort":"Düren","Straße":"Euskirchener Str. 101","Abladestelle":"71128-0010","Vorwahl":"02421","Telefon":"205485","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"BEI FC FRüHANLIEFERUNG DAS TOR SCHLIEßEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71129","Marktname":"Frischemarkt Thomas Weiden e.K.","PLZ":"51467","Ort":"Bergisch Gladbach","Straße":"Altenberger-Dom-Str. 126","Abladestelle":"71129-0010","Vorwahl":"02202","Telefon":"84455","Bezirksleiter":"Christoph Kessel","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NICHT VOR 6 UHR ABLADEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71131","Marktname":"Rosenzweig KG","PLZ":"52351","Ort":"Düren","Straße":"Kölnerlandstr. 212","Abladestelle":"71131-0010","Vorwahl":"02421","Telefon":"2089584","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"4","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71148","Marktname":"Getränke Jung","PLZ":"53809","Ort":"Ruppichteroth","Straße":"Am Juliusstollen 2","Abladestelle":"71148-0010","Vorwahl":"02295","Telefon":"9094723","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-Sackmitnahme","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71154","Marktname":"Marleen Steinebach e.K.","PLZ":"56462","Ort":"Höhn","Straße":"Am Gewerbepark 3-5","Abladestelle":"71154-0010","Vorwahl":"02661","Telefon":"9826356","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71163","Marktname":"Verbrauchermarkt Endt-Kosubek","PLZ":"52222","Ort":"Stolberg","Straße":"Obere Steinfurt 8","Abladestelle":"71163-0010","Vorwahl":"02402","Telefon":"909370","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NIE VOR  6 UHR! Z-Sackmitnahme","Kundeninfo2":"BIS 7UHR BITTE DIE FC ABLADEN","Kundeninfo3":""},{"Markt":"71259","Marktname":"Marktkauf EHG Rhein-Ruhr mbH","PLZ":"50226","Ort":"Frechen","Straße":"Dr.-Tusch-Str. 26 - 32","Abladestelle":"71259-0010","Vorwahl":"02234","Telefon":"957460","Bezirksleiter":"Annette Dickhausen","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71378","Marktname":"Karl Heinz Fellenzer e.K.","PLZ":"56305","Ort":"Puderbach","Straße":"Urbacher Str. 35","Abladestelle":"71378-0010","Vorwahl":"02684","Telefon":"979201","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"DRINGENDNICHT VOR 6 UHR ABLADEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71409","Marktname":"Frischecenter Vieler GmbH","PLZ":"52064","Ort":"Aachen","Straße":"Schillerstraße 20-40","Abladestelle":"71409-0010","Vorwahl":"0241","Telefon":"7508660","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-Sackmitnahme","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71410","Marktname":"K.-H. Fellenzer Frischecenter KG","PLZ":"56235","Ort":"Ransbach-Baumbach","Straße":"Pleurtuit Str. 8","Abladestelle":"71410-0010","Vorwahl":"02623","Telefon":"9242361","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71440","Marktname":"Handelshof Köln Stiftung & Co. KG","PLZ":"50933","Ort":"Köln","Straße":"Widdersdorfer Str. 429-431","Abladestelle":"71440-0010","Vorwahl":"0221","Telefon":"5108470","Bezirksleiter":"Anna Westbomke","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71443","Marktname":"Handelshof Köln Stiftung & Co. KG","PLZ":"50933","Ort":"Köln","Straße":"Widdersdorfer Str. 429-431","Abladestelle":"71443-0010","Vorwahl":"0221","Telefon":"5108470","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71443","Marktname":"Handelshof Köln Stiftung & Co. KG","PLZ":"50933","Ort":"Köln","Straße":"Widdersdorfer Str. 429-431","Abladestelle":"71443-0080","Vorwahl":"0221","Telefon":"5108470","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71447","Marktname":"Handelshof Köln Stiftung & Co. KG","PLZ":"51105","Ort":"Köln","Straße":"Rolshover Str. 229-231","Abladestelle":"71447-0010","Vorwahl":"0221","Telefon":"839060","Bezirksleiter":"Linda Hellwig","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71448","Marktname":"Handelshof Köln Stiftung & Co. KG","PLZ":"51105","Ort":"Köln","Straße":"Rolshover Str. 229-231","Abladestelle":"71448-0010","Vorwahl":"0221","Telefon":"839060","Bezirksleiter":"Bernd Völker","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71448","Marktname":"Handelshof Köln Stiftung & Co. KG","PLZ":"51105","Ort":"Köln","Straße":"Rolshover Str. 229-231","Abladestelle":"71448-0080","Vorwahl":"0221","Telefon":"839060","Bezirksleiter":"Bernd Völker","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71471","Marktname":"Handelshof Köln Stiftung & Co. KG","PLZ":"53359","Ort":"Rheinbach","Straße":"Kleinaltendorfer Weg 2","Abladestelle":"71471-0010","Vorwahl":"02226","Telefon":"8040","Bezirksleiter":"Bernd Völker","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71472","Marktname":"Edekamarkt Alexander Fuchs","PLZ":"53117","Ort":"Bonn","Straße":"Römerstr. 118","Abladestelle":"71472-0010","Vorwahl":"0228","Telefon":"674900","Bezirksleiter":"Christoph Kessel","Max LKW früh":"30","Max LKW tagsüber":"30","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"3,6","Lieferzeit":"ganztägig","Besonderheit":"nur flacher Solo!!!","Kundeninfo1":"\"Z-Sackmitnahme\"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71474","Marktname":"Handelshof Köln Stiftung & Co. KG","PLZ":"53359","Ort":"Rheinbach","Straße":"Kleinaltendorfer Weg 2","Abladestelle":"71474-0010","Vorwahl":"02226","Telefon":"8040","Bezirksleiter":"Monika Damm","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71474","Marktname":"Handelshof Köln Stiftung & Co. KG","PLZ":"53359","Ort":"Rheinbach","Straße":"Kleinaltendorfer Weg 2","Abladestelle":"71474-0080","Vorwahl":"02226","Telefon":"8040","Bezirksleiter":"Monika Damm","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71491","Marktname":"Teske Lebensmittelhandels KG","PLZ":"51371","Ort":"Leverkusen-Hitdorf","Straße":"Hitdorfer Str. 197","Abladestelle":"71491-0010","Vorwahl":"02173","Telefon":"40028","Bezirksleiter":"Christoph Kessel","Max LKW früh":"30","Max LKW tagsüber":"30","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC NICHT VOR 6H Z-Sackmitnahme","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71531","Marktname":"Teske LEH KG","PLZ":"51429","Ort":"Bergisch Gladbach","Straße":"Kölner Str. 104","Abladestelle":"71531-0010","Vorwahl":"02204","Telefon":"911031","Bezirksleiter":"Christoph Kessel","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-Sackmitnahme","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71534","Marktname":"Blaschek OHG","PLZ":"41516","Ort":"Grevenbroich-Neukirchen","Straße":"Am Bahndamm 1","Abladestelle":"71534-0010","Vorwahl":"02182","Telefon":"6677","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71535","Marktname":"Alexander Fuchs","PLZ":"53757","Ort":"Sankt Augustin","Straße":"Kölnstr. 124","Abladestelle":"71535-0010","Vorwahl":"02241","Telefon":"924628","Bezirksleiter":"Christoph Kessel","Max LKW früh":"30","Max LKW tagsüber":"30","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71536","Marktname":"Rosenzweig KG","PLZ":"52353","Ort":"Düren","Straße":"Heerweg 99","Abladestelle":"71536-0010","Vorwahl":"","Telefon":"","Bezirksleiter":"Stefan Bougie","Max LKW früh":"","Max LKW tagsüber":"","Rampe (Übersicht)":"","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71592","Marktname":"Rudolphi KG","PLZ":"53424","Ort":"Remagen","Straße":"Goethestr. 7","Abladestelle":"71592-0010","Vorwahl":"02642","Telefon":"906080","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71614","Marktname":"Felix Adebahr e.K.","PLZ":"52134","Ort":"Herzogenrath","Straße":"Kaiserstr. 131","Abladestelle":"71614-0010","Vorwahl":"02407","Telefon":"6768","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71631","Marktname":"Rudolphi KG","PLZ":"53474","Ort":"Bad Neuenahr","Straße":"Am Silberberg 2","Abladestelle":"71631-0010","Vorwahl":"02641","Telefon":"9138410","Bezirksleiter":"Christoph Kessel","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71659","Marktname":"Lebensmittelmärkte Pauli OHG","PLZ":"42651","Ort":"Solingen","Straße":"Kölnerstr. 99","Abladestelle":"71659-0010","Vorwahl":"0212","Telefon":"38329375","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Kann ab 4:30 Uhr abgeladen werden","Kundeninfo2":"\"Z-Sackmitnahme\"","Kundeninfo3":""},{"Markt":"71674","Marktname":"Astrid Stahl e.K.","PLZ":"50769","Ort":"Köln","Straße":"Bitterstr. 4","Abladestelle":"71674-0010","Vorwahl":"0221","Telefon":"782209","Bezirksleiter":"Stefan Bougie","Max LKW früh":"54","Max LKW tagsüber":"54","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"48er immer besser!!!","Kundeninfo1":"ERST AB 6 UHR ANLIEFERN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71701","Marktname":"LEH BONUS OHG","PLZ":"42799","Ort":"Leichlingen","Straße":"Reusrather 1","Abladestelle":"71701-0010","Vorwahl":"02175","Telefon":"1698571","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NICHT VOR 5:30 Uhr abladen","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71775","Marktname":"Lebensmittelmarkt","PLZ":"51647","Ort":"Gummersbach","Straße":"Dümlinghauser Str. 43","Abladestelle":"71775-0010","Vorwahl":"02261","Telefon":"959026","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACKMITNAHME","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71793","Marktname":"Walter Feinkost KG","PLZ":"52078","Ort":"Aachen","Straße":"Triererstr. 686","Abladestelle":"71793-0010","Vorwahl":"0241","Telefon":"5659903","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71890","Marktname":"Alexander Kreuzberg e.K.","PLZ":"56070","Ort":"Koblenz","Straße":"Andernacher Str. 238","Abladestelle":"71890-0010","Vorwahl":"0261","Telefon":"8899782","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"\"Z-Sackmitnahme\"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71891","Marktname":"Alexander Kreuzberg e.K.","PLZ":"56566","Ort":"Neuwied","Straße":"Breslauerstr. 63","Abladestelle":"71891-0010","Vorwahl":"02631","Telefon":"9549881","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"\"Z-Sackmitnahme\"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71892","Marktname":"Alexander Kreuzberg e.K.","PLZ":"56068","Ort":"Koblenz","Straße":"Hohenzollernstr. 132","Abladestelle":"71892-0010","Vorwahl":"0261","Telefon":"14850","Bezirksleiter":"Christoph Kessel","Max LKW früh":"54","Max LKW tagsüber":"54","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"48 er am Tag besser!!!","Kundeninfo1":"ABLADEN ERST UM 6H.NICHT VORHER.DRINGEND","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71957","Marktname":"Fischer & Nieder GmbH","PLZ":"51375","Ort":"Leverkusen","Straße":"Münsters Gässchen 3-9","Abladestelle":"71957-0010","Vorwahl":"0214","Telefon":"20277811","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NICHT VOR 6 UHR ANFAHREN!","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71958","Marktname":"Engels Marsdorf GmbH","PLZ":"53840","Ort":"Troisdorf","Straße":"Frankfurter Str. 19-23","Abladestelle":"71958-0010","Vorwahl":"02241","Telefon":"9731781","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NICHT VOR 6 UHR ANLIEFERN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71959","Marktname":"Rosenzweig KG","PLZ":"53909","Ort":"Zülpich","Straße":"Bonner Str. 34","Abladestelle":"71959-0010","Vorwahl":"02252","Telefon":"8392511","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"71965","Marktname":"Theodoros Caragrigoriou e. K.","PLZ":"53332","Ort":"Bornheim","Straße":"Moselstr. 7","Abladestelle":"71965-0010","Vorwahl":"02222","Telefon":"96400","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"MO + DO LEERGUT ENTSORGEN, DRINGEND","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72073","Marktname":"EDEKA Einzelhandelsg. RR mbH","PLZ":"42719","Ort":"Solingen","Straße":"Focherstraße 31","Abladestelle":"72073-0010","Vorwahl":"0212","Telefon":"38085814","Bezirksleiter":"Laura Tholen","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"nicht vor 06:30 h!!!!","Kundeninfo2":"\"Z-Sackmitnahme\"","Kundeninfo3":""},{"Markt":"72079","Marktname":"EDEKA Einzelhandelsg. RR mbH","PLZ":"53343","Ort":"Wachtberg","Straße":"Am Wachtbergring 5","Abladestelle":"72079-0010","Vorwahl":"0228","Telefon":"3774668","Bezirksleiter":"Laura Tholen","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72079","Marktname":"EDEKA Einzelhandelsg. RR mbH","PLZ":"53343","Ort":"Wachtberg","Straße":"Am Wachtbergring 5","Abladestelle":"72079-0020","Vorwahl":"0228","Telefon":"3774668","Bezirksleiter":"Laura Tholen","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72081","Marktname":"EDEKA Einzelhandelsg. RR mbH","PLZ":"51379","Ort":"Leverkusen","Straße":"Pommernstr. 4-6","Abladestelle":"72081-0010","Vorwahl":"02171","Telefon":"767934","Bezirksleiter":"Laura Tholen","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"\"Z-Sackmitnahme\"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72117","Marktname":"MISBO GmbH","PLZ":"53125","Ort":"Bonn","Straße":"Reichsstr. 46","Abladestelle":"72117-0010","Vorwahl":"0228","Telefon":"251341","Bezirksleiter":"Philipp Draht","Max LKW früh":"54","Max LKW tagsüber":"54","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72123","Marktname":"Laura Bachem EDEKA Aktivmarkt","PLZ":"53225","Ort":"Bonn","Straße":"Mirecourtstr. 15","Abladestelle":"72123-0010","Vorwahl":"0228","Telefon":"465614","Bezirksleiter":"Philipp Draht","Max LKW früh":"30","Max LKW tagsüber":"30","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"ANLIEFERUNG TROCKENSORTIEMTN RÜCKWÄRTS","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72141","Marktname":"Wodarz OHG","PLZ":"42719","Ort":"Solingen","Straße":"Friedrich-Ebert-Str. 95","Abladestelle":"72141-0010","Vorwahl":"0212","Telefon":"313772","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC BITTE BIS 6:30H ANLIEFERN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72141","Marktname":"Wodarz OHG","PLZ":"42719","Ort":"Solingen","Straße":"Friedrich-Ebert-Str. 95","Abladestelle":"72141-0020","Vorwahl":"0212","Telefon":"313772","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72157","Marktname":"Heinz Hövener e.K.","PLZ":"40764","Ort":"Langenfeld","Straße":"Kaiserstr. 20","Abladestelle":"72157-0010","Vorwahl":"02173","Telefon":"72163","Bezirksleiter":"Frank Reif","Max LKW früh":"54","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"BITTE NICHT VOR 5HLEERGUT ENTSORGEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72158","Marktname":"Heinz Hövener e.K.","PLZ":"40764","Ort":"Langenfeld","Straße":"Schneiderstr. 17","Abladestelle":"72158-0010","Vorwahl":"02173","Telefon":"2037436","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"AB 5H NUR VORNE,LEISELEERGUT AB 6 UHR","Kundeninfo2":"\"Z-Sackmitnahme\"","Kundeninfo3":""},{"Markt":"72169","Marktname":"Simon Hüffel e.K.","PLZ":"53913","Ort":"Swisttal","Straße":"Gewerbepark Odendorf 1","Abladestelle":"72169-0010","Vorwahl":"02255","Telefon":"9219300","Bezirksleiter":"Philipp Draht","Max LKW früh":"","Max LKW tagsüber":"","Rampe (Übersicht)":"","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72171","Marktname":"Rolf Harbring","PLZ":"42929","Ort":"Wermelskirchen","Straße":"Im Belten 2","Abladestelle":"72171-0010","Vorwahl":"02196","Telefon":"83871","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72230","Marktname":"Dietmar Kern e.K.","PLZ":"51377","Ort":"Leverkusen","Straße":"Berliner Str. 2-4","Abladestelle":"72230-0010","Vorwahl":"0214","Telefon":"891050","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NAVI: ÜBER BERG. LANDSTRAßE ANLIEFERN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72239","Marktname":"Ludmilla Axt e.K.","PLZ":"53879","Ort":"Euskirchen","Straße":"Billiger Str. 46","Abladestelle":"72239-0010","Vorwahl":"02251","Telefon":"1471853","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"KEINE LIEFERUNG FC VOR 06:00 UHR","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72271","Marktname":"Matthias Voßdahls e.K.","PLZ":"41541","Ort":"Dormagen","Straße":"Am Weißen Stein 1","Abladestelle":"72271-0010","Vorwahl":"02133","Telefon":"533235","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"\"Z-Sackmitnahme\"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72272","Marktname":"Matthias Voßdahls e.K.","PLZ":"41541","Ort":"Dormagen","Straße":"Am Weißen Stein 3","Abladestelle":"72272-0010","Vorwahl":"02133","Telefon":"9749908","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72276","Marktname":"Getränke Kropp GmbH","PLZ":"41542","Ort":"Dormagen","Straße":"Im Ückerath 8-10","Abladestelle":"72276-0010","Vorwahl":"02133","Telefon":"268889","Bezirksleiter":"Stefan Bougie","Max LKW früh":"","Max LKW tagsüber":"","Rampe (Übersicht)":"","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72278","Marktname":"Walter Feinkost KG","PLZ":"52222","Ort":"Stolberg","Straße":"Eisenbahnstr. 153","Abladestelle":"72278-0010","Vorwahl":"02402","Telefon":"1020377","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FRISCHE AB 06:00 UHR ÜBERGEBEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72287","Marktname":"Tom Engels e.K.","PLZ":"50739","Ort":"Köln","Straße":"Longericher Str. 534","Abladestelle":"72287-0010","Vorwahl":"0221","Telefon":"12615540","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72293","Marktname":"E-Center Engels Marsdorf GmbH","PLZ":"53840","Ort":"Troisdorf","Straße":"Marie-Lene-Rödder-Straße 2","Abladestelle":"72293-0010","Vorwahl":"02241","Telefon":"8963463","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72299","Marktname":"Marcus Byhahn e.K.","PLZ":"42499","Ort":"Hückeswagen","Straße":"Wiehagenerstr. 65","Abladestelle":"72299-0010","Vorwahl":"02192","Telefon":"931245","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"keine Spediteure!!! Seitenblech","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72300","Marktname":"Thomas Byhahn  e.K","PLZ":"42477","Ort":"Radevormwald","Straße":"Elberfelderstr. 94","Abladestelle":"72300-0010","Vorwahl":"02195","Telefon":"6849844","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72302","Marktname":"Breidohr Frische-Markt Rösrath GmbH","PLZ":"51503","Ort":"Rösrath","Straße":"Hauptstr. 102","Abladestelle":"72302-0010","Vorwahl":"02205","Telefon":"901030","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC NICHT VOR 5 UHR ABLADEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72302","Marktname":"Breidohr Frische-Markt Rösrath GmbH","PLZ":"51503","Ort":"Rösrath","Straße":"Hauptstr. 102","Abladestelle":"72302-0030","Vorwahl":"02205","Telefon":"901030","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC NICHT VOR 5 UHR ABLADEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72303","Marktname":"Ralf Breil e.K.","PLZ":"53902","Ort":"Bad Münstereifel","Straße":"Kölner Str. 47","Abladestelle":"72303-0010","Vorwahl":"02253","Telefon":"9324758","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72525","Marktname":"Rosenzweig KG trinkgut","PLZ":"52353","Ort":"Düren","Straße":"Heerweg 99","Abladestelle":"72525-0010","Vorwahl":"","Telefon":"","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"","Max LKW tagsüber":"","Rampe (Übersicht)":"","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72760","Marktname":"Getränkesupermarkt Elke Luck e.K.","PLZ":"42799","Ort":"Leichlingen","Straße":"Moltkestr. 25","Abladestelle":"72760-0010","Vorwahl":"02175","Telefon":"979674","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"ANLIEFERUNG NUR ÜBER DIE L288","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72779","Marktname":"Getränkesupermarkt J.Cwieczek e.K.","PLZ":"42929","Ort":"Wermelskirchen","Straße":"Albert-Einstein-Str. 9a","Abladestelle":"72779-0010","Vorwahl":"02196","Telefon":"884205","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Vor Anlieferung im Markt melden!!!","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72787","Marktname":"Getränkesupermarkt Luck e.K.","PLZ":"40764","Ort":"Langenfeld","Straße":"Schneiderstr. 13","Abladestelle":"72787-0010","Vorwahl":"02173","Telefon":"929255","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"BEI ANLIEFERUNG FRESSNAPF FREI LASSEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72796","Marktname":"Getränkesupermarkt","PLZ":"50126","Ort":"Bergheim","Straße":"Gutenbergstr. 20","Abladestelle":"72796-0010","Vorwahl":"02271","Telefon":"670936","Bezirksleiter":"Jörg Sielaff","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72836","Marktname":"Getränkesupermarkt Esch e.K.","PLZ":"53229","Ort":"Bonn","Straße":"Gerhardstr. 12","Abladestelle":"72836-0010","Vorwahl":"0228","Telefon":"4222936","Bezirksleiter":"Patrick Richter","Max LKW früh":"54","Max LKW tagsüber":"54","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"GARTENSTR.83 ANFAHREN/EINGEBEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72850","Marktname":"Getränkesupermarkt Ogiolda e.K.","PLZ":"52134","Ort":"Herzogenrath","Straße":"Nordsternpark 5","Abladestelle":"72850-0010","Vorwahl":"02406","Telefon":"9792005","Bezirksleiter":"Patrick Richter","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NAVIADRESSE:GEILENKIRCHENERSTR 360","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72853","Marktname":"Getränkesupermarkt Esch e.K.","PLZ":"50354","Ort":"Hürth","Straße":"Bonnstr. 246-248","Abladestelle":"72853-0010","Vorwahl":"02233","Telefon":"9289300","Bezirksleiter":"Patrick Richter","Max LKW früh":"54","Max LKW tagsüber":"54","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72875","Marktname":"Getränkesupermarkt Francki e.K.","PLZ":"56566","Ort":"Neuwied","Straße":"Allensteiner Str. 22a","Abladestelle":"72875-0010","Vorwahl":"02631","Telefon":"342755","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72883","Marktname":"Getränke Breidenbach e.K.","PLZ":"51373","Ort":"Leverkusen","Straße":"Adolf Kaschny Str. 1-5","Abladestelle":"72883-0010","Vorwahl":"0214","Telefon":"6026856","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72900","Marktname":"Getränkesupermarkt Akbas e.K.","PLZ":"52428","Ort":"Jülich","Straße":"Aachener Str. 11a","Abladestelle":"72900-0010","Vorwahl":"02461","Telefon":"341604","Bezirksleiter":"Patrick Richter","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"SCHLÜSSEL Z-SACK MITNAHME","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72908","Marktname":"Getränkesupermarkt Esch e.K.","PLZ":"53859","Ort":"Niederkassel","Straße":"Porzer Straße 33","Abladestelle":"72908-0010","Vorwahl":"02208","Telefon":"5007317","Bezirksleiter":"Patrick Richter","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72916","Marktname":"Getränkesupermarkt Schirwitz e.K.","PLZ":"50259","Ort":"Pulheim","Straße":"Siemensstr. 9","Abladestelle":"72916-0010","Vorwahl":"02238","Telefon":"9299940","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72917","Marktname":"Getränkesupermarkt Schirwitz e.K.","PLZ":"41540","Ort":"Dormagen","Straße":"Kieler Str. 25","Abladestelle":"72917-0010","Vorwahl":"02133","Telefon":"259870","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72919","Marktname":"Getränkesupermarkt Helfrich e.K.","PLZ":"50181","Ort":"Bedburg","Straße":"Wiesenstr. 2","Abladestelle":"72919-0010","Vorwahl":"02272","Telefon":"9024967","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72960","Marktname":"Getränkemarkt Ahmann e.K.","PLZ":"50389","Ort":"Wesseling","Straße":"Kronenweg 19","Abladestelle":"72960-0010","Vorwahl":"02236","Telefon":"3843510","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"HAUSNUMMER 20","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72970","Marktname":"Handelshof Management GmbH","PLZ":"51149","Ort":"Köln","Straße":"Viktoriastr. 26","Abladestelle":"72970-0010","Vorwahl":"02203","Telefon":"17060","Bezirksleiter":"Frank Reif","Max LKW früh":"","Max LKW tagsüber":"","Rampe (Übersicht)":"","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72976","Marktname":"Handelshof","PLZ":"53359","Ort":"Rheinbach","Straße":"Kleinaltendorfer Weg 2","Abladestelle":"72976-0010","Vorwahl":"02226","Telefon":"8040","Bezirksleiter":"Bernd Völker","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"72979","Marktname":"Handelshof Köln GmbH & Co. KG","PLZ":"50933","Ort":"Köln","Straße":"Widdersdorfer Str. 427 - 431","Abladestelle":"72979-0010","Vorwahl":"0221","Telefon":"5108470","Bezirksleiter":"Thomas Werner","Max LKW früh":"","Max LKW tagsüber":"","Rampe (Übersicht)":"","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73007","Marktname":"EDEKA Markt Alexandra Bock","PLZ":"53177","Ort":"Bonn","Straße":"Akazienweg 10","Abladestelle":"73007-0010","Vorwahl":"0228","Telefon":"32301390","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"GANZ WICHTIG, NICHT VOR 6 UHR ABLADEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73032","Marktname":"Birgit Braun","PLZ":"51789","Ort":"Lindlar","Straße":"Lindlarer Str. 40","Abladestelle":"73032-0010","Vorwahl":"02207","Telefon":"910967","Bezirksleiter":"Christoph Kessel","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACKMITNAHME","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73033","Marktname":"Getränkesupermarkt Thoma e.K.","PLZ":"52382","Ort":"Niederzier","Straße":"Grabenstr. 72","Abladestelle":"73033-0010","Vorwahl":"02428","Telefon":"802517","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"BITTE ERST IM MARKT MELDEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73034","Marktname":"Getränkesupermarkt Miler e.K.","PLZ":"53894","Ort":"Mechernich-Kommern","Straße":"Mechernicher Weg 3","Abladestelle":"73034-0010","Vorwahl":"02443","Telefon":"3102007","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"ANLIEFERUNG MECHER. WEG 1 IN KOMMERN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73037","Marktname":"Getränkesupermarkt Gehlich e.K.","PLZ":"52477","Ort":"Alsdorf","Straße":"Aachener Str. 120","Abladestelle":"73037-0010","Vorwahl":"02404","Telefon":"9579912","Bezirksleiter":"Patrick Richter","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73052","Marktname":"Norbert Geldermann KG","PLZ":"52072","Ort":"Aachen","Straße":"Roder Weg 9-11","Abladestelle":"73052-0010","Vorwahl":"0241","Telefon":"18295919","Bezirksleiter":"Patrick Richter","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73057","Marktname":"Alexandra Osterland-Tacke e.K.","PLZ":"42477","Ort":"Radevormwald","Straße":"Dahlienstraße 36","Abladestelle":"73057-0010","Vorwahl":"02195","Telefon":"5114","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACKMITNAHME","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73061","Marktname":"Getränkesupermarkt Schwalm e.K.","PLZ":"41836","Ort":"Hückelhoven","Straße":"Am Landabsatz 2a","Abladestelle":"73061-0010","Vorwahl":"02433","Telefon":"9521320","Bezirksleiter":"Andreas Fink","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"4","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73087","Marktname":"Axel Schäfer KG trinkgut","PLZ":"52068","Ort":"Aachen","Straße":"Elsassstr. 139","Abladestelle":"73087-0010","Vorwahl":"0241","Telefon":"99799621","Bezirksleiter":"Patrick Richter","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"ACHTUNG GRÜNE PLAKETTE","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73090","Marktname":"Dirk Steilen Euskirchen e.K.","PLZ":"53881","Ort":"Euskirchen-Flamersheim","Straße":"Geierstr.7/Christian-Schäfer Str.24","Abladestelle":"73090-0010","Vorwahl":"02255","Telefon":"9491649","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Anlieferung Christian-Schäfer Str. 24","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73127","Marktname":"Getränkesupermarkt Ralf Breil e.K.","PLZ":"53902","Ort":"Bad Münstereifel","Straße":"Kölner Str. 55","Abladestelle":"73127-0010","Vorwahl":"02253","Telefon":"5457303","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73141","Marktname":"Getränkesupermarkt D. Röcher e.K.","PLZ":"56410","Ort":"Montabaur","Straße":"Allmannshausen 10a","Abladestelle":"73141-0010","Vorwahl":"02602","Telefon":"1341222","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"UNBEDINGT RECHNUNGEN MITNEHMEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73158","Marktname":"Getränkesupermarkt Miler e.K. II","PLZ":"53909","Ort":"Zülpich","Straße":"Karolinger Straße  7","Abladestelle":"73158-0010","Vorwahl":"02252","Telefon":"8376968","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73165","Marktname":"Anne Felbecker Frischemarkt e.K.","PLZ":"51491","Ort":"Overath","Straße":"Pilgerstr. 69","Abladestelle":"73165-0010","Vorwahl":"02206","Telefon":"912784","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Grundstück ggü Anlieferung nicht befahre","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73170","Marktname":"Getränkesupermarkt","PLZ":"50171","Ort":"Kerpen","Straße":"Am Falder 12","Abladestelle":"73170-0010","Vorwahl":"02237","Telefon":"9799444","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"LIEFERADRESSE: PHILIPP-SCHNIDER STR.","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73172","Marktname":"Rosenzweig KG","PLZ":"52351","Ort":"Düren","Straße":"Berliner Str. 27","Abladestelle":"73172-0010","Vorwahl":"02421","Telefon":"971050","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"\"Z-Sackmitnahme\"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73173","Marktname":"Rosenzweig KG","PLZ":"52349","Ort":"Düren","Straße":"Nideggenerstr. 219","Abladestelle":"73173-0010","Vorwahl":"02421","Telefon":"1216887","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73178","Marktname":"Getränkesupermarkt Yanar e.K.","PLZ":"53879","Ort":"Euskirchen","Straße":"Stresemannstr. 5-7","Abladestelle":"73178-0010","Vorwahl":"02251","Telefon":"8106984","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73197","Marktname":"Getränkesupermarkt Korn e.K","PLZ":"56218","Ort":"Mülheim-Kärlich","Straße":"Industriestr. 45","Abladestelle":"73197-0010","Vorwahl":"02630","Telefon":"962755","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73201","Marktname":"Frischmarkt Interbieten GmbH","PLZ":"53919","Ort":"Weilerswist","Straße":"An den Eifelhecken 3","Abladestelle":"73201-0010","Vorwahl":"02254","Telefon":"6013135","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73204","Marktname":"Getränkesupermarkt Hofmann e.K.","PLZ":"50827","Ort":"Köln","Straße":"Mathias-Brüggen-Str. 1","Abladestelle":"73204-0010","Vorwahl":"0221","Telefon":"29790565","Bezirksleiter":"Patrick Richter","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"MITNAHME Z-SACK..","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73207","Marktname":"Getränkesupermarkt Kücük e.K.","PLZ":"50226","Ort":"Frechen","Straße":"Aachener Str. 530","Abladestelle":"73207-0010","Vorwahl":"02234","Telefon":"201863","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"54","Max LKW tagsüber":"54","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73211","Marktname":"Getränkemarkt Ahmann e.K.","PLZ":"53840","Ort":"Troisdorf","Straße":"Mendener Str. 21","Abladestelle":"73211-0010","Vorwahl":"02241","Telefon":"9744460","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"SCHLÜSSEL","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73219","Marktname":"EDEKA Markt Alexandra Bock","PLZ":"53489","Ort":"Sinzig","Straße":"Kölner Str. 9","Abladestelle":"73219-0010","Vorwahl":"02642","Telefon":"981015","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"Rampe ja, nicht ohen Bühne!!!","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73222","Marktname":"Getränkesupermarkt Provotorov e.K.","PLZ":"53937","Ort":"Schleiden","Straße":"Triererstr. 8-10","Abladestelle":"73222-0010","Vorwahl":"","Telefon":"","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"","Max LKW tagsüber":"","Rampe (Übersicht)":"","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73257","Marktname":"Walter Feinkost KG","PLZ":"52222","Ort":"Stolberg","Straße":"Eisenbahnstr. 153a","Abladestelle":"73257-0010","Vorwahl":"02402","Telefon":"1020340","Bezirksleiter":"Patrick Richter","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73273","Marktname":"Hans-Jürgen Hecken","PLZ":"53578","Ort":"Windhagen","Straße":"Vierwindener Str. 13","Abladestelle":"73273-0010","Vorwahl":"02645","Telefon":"2579","Bezirksleiter":"nicht betreut","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73295","Marktname":"Getränkesupermarkt Kozak e.K.","PLZ":"52134","Ort":"Herzogenrath","Straße":"Roermonder Str. 63a","Abladestelle":"73295-0010","Vorwahl":"02407","Telefon":"5656333","Bezirksleiter":"Andreas Fink","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73310","Marktname":"Getränkesupermarkt S. Röcher e.K.","PLZ":"56626","Ort":"Andernach","Straße":"Koblenzer Str. 58","Abladestelle":"73310-0010","Vorwahl":"02632","Telefon":"989696","Bezirksleiter":"Stefano Nieddu","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73311","Marktname":"Fett Frischecenter KG","PLZ":"53545","Ort":"Linz am Rhein","Straße":"Asbacherstr. 4","Abladestelle":"73311-0010","Vorwahl":"02644","Telefon":"807550","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Nie vor 06 Uhr abladen!","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73316","Marktname":"Josef Müller Lebensmittel e.K.","PLZ":"53474","Ort":"Bad Neuenahr-Ahrweiler","Straße":"Johannisstr. 22","Abladestelle":"73316-0010","Vorwahl":"02641","Telefon":"26139","Bezirksleiter":"Christoph Kessel","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-Sackmitnahme","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73335","Marktname":"Kuhland GmbH","PLZ":"40724","Ort":"Hilden","Straße":"Lortzingstr. 39","Abladestelle":"73335-0010","Vorwahl":"02103","Telefon":"44017","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"48","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC NUR VORNE ABLADEN.ERST AB 6:30 UHR","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73337","Marktname":"Ney e.K.","PLZ":"41515","Ort":"Grevenbroich Südstadt","Straße":"Von Stauffenberg Str. 1","Abladestelle":"73337-0010","Vorwahl":"02181","Telefon":"61078","Bezirksleiter":"Laura Tholen","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"BITTE ANRUFEN VOR DER ABFAHRT02181/61078","Kundeninfo2":"Z-Sackmitnahme","Kundeninfo3":""},{"Markt":"73337","Marktname":"Ney e.K.","PLZ":"41515","Ort":"Grevenbroich Südstadt","Straße":"Von Stauffenberg Str. 1","Abladestelle":"73337-0020","Vorwahl":"02181","Telefon":"61078","Bezirksleiter":"Laura Tholen","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"BITTE ANRUFEN VOR DER ABFAHRT02181/61078","Kundeninfo2":"Z-Sackmitnahme","Kundeninfo3":""},{"Markt":"73414","Marktname":"Frischemarkt Offermann oHG","PLZ":"51688","Ort":"Wipperfürth","Straße":"Westfalenstr. 17","Abladestelle":"73414-0010","Vorwahl":"02267","Telefon":"4102","Bezirksleiter":"Christoph Kessel","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NIE VOR 6;Z-Sackmitnahme;Anf.ü.W'fürth","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73414","Marktname":"Frischemarkt Offermann oHG","PLZ":"51688","Ort":"Wipperfürth","Straße":"Westfalenstr. 17","Abladestelle":"73414-0020","Vorwahl":"02267","Telefon":"4102","Bezirksleiter":"Christoph Kessel","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACKMITNAHME.","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73416","Marktname":"Frischemarkt Offermann","PLZ":"51688","Ort":"Wipperfürth","Straße":"Hindenburgstr. 2","Abladestelle":"73416-0010","Vorwahl":"02267","Telefon":"887920","Bezirksleiter":"Christoph Kessel","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"3,8","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"immer VOR Ankunft unter 02267-887920 im","Kundeninfo2":"Markt anmelden!!!","Kundeninfo3":""},{"Markt":"73417","Marktname":"Frischemarkt Offermann","PLZ":"42929","Ort":"Wermelskirchen","Straße":"Südstr. 6","Abladestelle":"73417-0010","Vorwahl":"02193","Telefon":"4406","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"Rampe ja, nur mit Bühne!!!","Kundeninfo1":"ZWISCH.RAMPE HOCH FAHREN.FC SAMSTAGS 6H","Kundeninfo2":"Z-Sackmitnahme","Kundeninfo3":""},{"Markt":"73434","Marktname":"Frischemarkt Astrid Stahl e.K.","PLZ":"50769","Ort":"Köln","Straße":"Sinnersdorfer Str. 66-68","Abladestelle":"73434-0010","Vorwahl":"0221","Telefon":"7871194","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"BITTE ERST AB 7 UHR ABLADEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73476","Marktname":"Nicole Geldermann e.K.","PLZ":"52072","Ort":"Aachen","Straße":"Schlossparkstr. 4-6","Abladestelle":"73476-0010","Vorwahl":"0241","Telefon":"9319620","Bezirksleiter":"Stefan Bougie","Max LKW früh":"30","Max LKW tagsüber":"30","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73479","Marktname":"Adebahr Lebensmittel KG","PLZ":"52066","Ort":"Aachen","Straße":"Kapellenstr. 16-18","Abladestelle":"73479-0010","Vorwahl":"0241","Telefon":"6088440","Bezirksleiter":"Stefan Bougie","Max LKW früh":"30","Max LKW tagsüber":"30","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"ABLADE TS M.SEITENBLECHAnfahrt Klevestr.","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73483","Marktname":"Mohr Frischecenter GmbH Bonn-Beuel","PLZ":"53225","Ort":"Bonn","Straße":"Konrad-Adenauer-Platz 28","Abladestelle":"73483-0010","Vorwahl":"0228","Telefon":"40386993","Bezirksleiter":"Philipp Draht","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"von Strasse rückwärts ansetzen","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73486","Marktname":"Patrick Straßfeld e.K.","PLZ":"50226","Ort":"Frechen","Straße":"Aachener Str. 537","Abladestelle":"73486-0010","Vorwahl":"02234","Telefon":"9679141","Bezirksleiter":"Stefan Bougie","Max LKW früh":"54","Max LKW tagsüber":"54","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73489","Marktname":"Frischemarkt Thomas Weiden GmbH","PLZ":"51069","Ort":"Köln","Straße":"Berlinerstr. 823","Abladestelle":"73489-0010","Vorwahl":"0221","Telefon":"9604371","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73492","Marktname":"S. Hemmersbach e.K.","PLZ":"51109","Ort":"Köln","Straße":"Olpenerstr. 397-401","Abladestelle":"73492-0010","Vorwahl":"0221","Telefon":"9891933","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"O/G über Haupteingang","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73494","Marktname":"A. Spalek e.K.","PLZ":"42655","Ort":"Solingen","Straße":"Kronprinzenstr. 125a","Abladestelle":"73494-0010","Vorwahl":"0212","Telefon":"2241726","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"\"Z-Sackmitnahme\" Mitnahme","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73495","Marktname":"Frischecenter Hemmersbach GmbH","PLZ":"53757","Ort":"Sankt Augustin","Straße":"Rathausallee 16","Abladestelle":"73495-0010","Vorwahl":"02241","Telefon":"9999125","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73498","Marktname":"Mohr Frischecenter GmbH","PLZ":"53129","Ort":"Bonn-Dottendorf","Straße":"Karl-Barth-Str. 92","Abladestelle":"73498-0010","Vorwahl":"0228","Telefon":"1840981","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"IMMER LEERGUT ENTSORGEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73502","Marktname":"Matthias Schmitz e.K.","PLZ":"51377","Ort":"Leverkusen","Straße":"Theodor-Adorno-Str. 1","Abladestelle":"73502-0010","Vorwahl":"02171","Telefon":"765485","Bezirksleiter":"Frank Reif","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"1.Einfahrt auf Parkplatz für LKW gesperr","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73505","Marktname":"Straßfeld Frischecenter KG","PLZ":"50170","Ort":"Kerpen","Straße":"Zum Wasserwerk 7","Abladestelle":"73505-0010","Vorwahl":"02273","Telefon":"6036830","Bezirksleiter":"Stefan Bougie","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"FC WIEDER HINTEN ABLADENRETOUREN LADEN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73519","Marktname":"Lebensmittel Frische-Märkte","PLZ":"53347","Ort":"Alfter","Straße":"Hauptstr. 283","Abladestelle":"73519-0010","Vorwahl":"0228","Telefon":"9082810","Bezirksleiter":"Philipp Draht","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"GEGENÜBER DER BÜRGERSTEIG NICHT BEFAHREN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73541","Marktname":"Stöcker e.K.","PLZ":"51789","Ort":"Lindlar","Straße":"Kölner Str. 7","Abladestelle":"73541-0010","Vorwahl":"02266","Telefon":"463272","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"30","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"Tagsüber Solo, Parkplatz!!!","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73559","Marktname":"Wagner Margret Inh.Bianca Wagner","PLZ":"56237","Ort":"Nauort","Straße":"Hauptstr. 28","Abladestelle":"73559-0010","Vorwahl":"02601","Telefon":"2987","Bezirksleiter":"nicht betreut","Max LKW früh":"54","Max LKW tagsüber":"54","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"17.8-5.9 BAUSTELLE,ÜBER BENDORF FAHREN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73597","Marktname":"Rudolphi KG","PLZ":"53424","Ort":"Remagen","Straße":"Hauptstr. 133","Abladestelle":"73597-0010","Vorwahl":"02228","Telefon":"911419","Bezirksleiter":"Christoph Kessel","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Nie vor 6 Uhr abladen!","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73807","Marktname":"Armin Geschull","PLZ":"53547","Ort":"Breitscheid","Straße":"Marienstr. 1","Abladestelle":"73807-0010","Vorwahl":"02638","Telefon":"947878","Bezirksleiter":"nicht betreut","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"73956","Marktname":"Schallenberg","PLZ":"51371","Ort":"Leverkusen-Rheindorf","Straße":"Wupperstr. 8","Abladestelle":"73956-0010","Vorwahl":"0214","Telefon":"8202036","Bezirksleiter":"Christoph Kessel","Max LKW früh":"30","Max LKW tagsüber":"30","Rampe (Übersicht)":"ja","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"NICHT VOR 6 UHR ANLIEFERN","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"74031","Marktname":"trinkgut Getränkeeinzelhandel GmbH","PLZ":"52441","Ort":"Linnich","Straße":"Jülicher Str. 21","Abladestelle":"74031-0010","Vorwahl":"02462","Telefon":"2033254","Bezirksleiter":"Andreas Fink","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"74190","Marktname":"trinkgut Getränkeeinzelhandel GmbH","PLZ":"53332","Ort":"Bornheim","Straße":"Am Hellenkrenz 3","Abladestelle":"74190-0010","Vorwahl":"02222","Telefon":"9277060","Bezirksleiter":"Patrick Richter","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACKMITNAHME","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"74191","Marktname":"trinkgut Getränkeeinzelhandel GmbH","PLZ":"53347","Ort":"Alfter","Straße":"Alfterer Str. 43","Abladestelle":"74191-0010","Vorwahl":"0228","Telefon":"9649393","Bezirksleiter":"Patrick Richter","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACKMITNAHME","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"74192","Marktname":"trinkgut Getränkeeinzelhandel GmbH","PLZ":"53179","Ort":"Bonn","Straße":"Am Dinaswerk 4b","Abladestelle":"74192-0010","Vorwahl":"0228","Telefon":"3504796","Bezirksleiter":"Patrick Richter","Max LKW früh":"48","Max LKW tagsüber":"48","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACKMITNAHME","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"74195","Marktname":"trinkgut Getränkeeinzelhandel GmbH","PLZ":"50321","Ort":"Brühl","Straße":"Wesselinger Str. 2-8","Abladestelle":"74195-0010","Vorwahl":"02232","Telefon":"9499117","Bezirksleiter":"Patrick Richter","Max LKW früh":"54","Max LKW tagsüber":"54","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-SACK MITNAHME","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"74221","Marktname":"trinkgut Getränkeeinzelhandel GmbH","PLZ":"52511","Ort":"Geilenkirchen","Straße":"Von Humboldtstr. 103","Abladestelle":"74221-0010","Vorwahl":"02451","Telefon":"4096949","Bezirksleiter":"Andreas Fink","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"74222","Marktname":"trinkgut Getränkeeinzelhandel GmbH","PLZ":"52531","Ort":"Übach-Palenberg","Straße":"Friedrich-Ebert-Str. 103","Abladestelle":"74222-0010","Vorwahl":"02451","Telefon":"628705","Bezirksleiter":"Andreas Fink","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"74229","Marktname":"trinkgut Getränkeeinzelhandel GmbH","PLZ":"50765","Ort":"Köln-Chorweiler","Straße":"Elbeallee 23","Abladestelle":"74229-0010","Vorwahl":"0221","Telefon":"7001718","Bezirksleiter":"Patrick Richter","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"Z-Sackmitnahme","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"74237","Marktname":"trinkgut Getränkeeinzelhandel GmbH","PLZ":"52070","Ort":"Aachen","Straße":"Wurmbenden 9","Abladestelle":"74237-0010","Vorwahl":"0241","Telefon":"9161999","Bezirksleiter":"Patrick Richter","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""},{"Markt":"74238","Marktname":"trinkgut Getränkeeinzelhandels GmbH","PLZ":"53175","Ort":"Bonn","Straße":"Elsässer Str. 22","Abladestelle":"74238-0010","Vorwahl":"0228","Telefon":"93199795","Bezirksleiter":"Patrick Richter","Max LKW früh":"alles","Max LKW tagsüber":"alles","Rampe (Übersicht)":"nein","Hubwagen vorhanden":"ja","Max. Anfahrhöhe (m)":"","Lieferzeit":"ganztägig","Besonderheit":"","Kundeninfo1":"","Kundeninfo2":"","Kundeninfo3":""}]}</script>
+<script>
+const $=id=>document.getElementById(id);
+const META=JSON.parse($('dat').textContent),KEY='kd_'+META.stamp;let D=META.rows,COLS=META.cols;
+try{const s=localStorage.getItem(KEY);if(s){const o=JSON.parse(s);D=o.rows;COLS=o.cols}}catch(e){}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const url=k=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(k.Straße+', '+k.PLZ+' '+k.Ort);
+const cache={};
+function qr(k){
+ const u=url(k);if(cache[u])return cache[u];
+ let q=null;
+ for(let t=4;t<=40&&!q;t++){try{const x=new QRCodeLib(t,0);x.addData(u);x.make();q=x}catch(e){}}
+ if(!q)return '';
+ const n=q.getModuleCount(),m=2;let d='';
+ for(let r=0;r<n;r++)for(let c=0;c<n;c++)if(q.isDark(r,c))d+='M'+(c+m)+' '+(r+m)+'h1v1h-1z';
+ return cache[u]='<svg viewBox="0 0 '+(n+2*m)+' '+(n+2*m)+'" shape-rendering="crispEdges"><rect width="100%" height="100%" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>';
+}
+const HEAD=['Markt','Marktname','PLZ','Ort','Straße'];
+const nr=k=>k.Markt+(k.dup&&k.Abladestelle?' · Abl. '+k.Abladestelle.split('-').pop():'');
+function det(k){return COLS.filter(c=>!HEAD.includes(c)&&c!=='Vorwahl'&&c!=='Besonderheit'&&k[c]).map(c=>'<dt>'+esc(c)+'</dt><dd>'+(c==='Telefon'?'<a href="tel:'+esc(((k.Vorwahl||'')+k.Telefon).replace(/\s/g,''))+'">'+esc((k.Vorwahl?k.Vorwahl+' ':'')+k.Telefon)+'</a>':esc(k[c]))+'</dd>').join('')}
+function reindex(){const c={};D.forEach(k=>c[k.Markt]=(c[k.Markt]||0)+1);D.forEach((k,i)=>{k.i=i;k.dup=c[k.Markt]>1;k.h=[k.Markt,k.Marktname,k.Ort,k.PLZ,k.Straße,k.Abladestelle,k.Bezirksleiter,k.Telefon,k.Kundeninfo1,k.Besonderheit].join(' ').toLowerCase()})}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify({cols:COLS,rows:D.map(({i,h,dup,...r})=>r)}))}catch(e){}}
+let res=[],shown=0,ramp=false;const PG=40;
+function filter(){
+ const t=$('q').value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+ res=D.filter(k=>t.every(w=>k.h.includes(w)));
+ shown=0;$('list').innerHTML='';$('cnt').textContent=res.length+' von '+D.length;more();
+}
+function more(){
+ const part=res.slice(shown,shown+PG);shown+=part.length;
+ if(!res.length)$('list').innerHTML='<div class="empty">Kein Kunde gefunden.</div>';
+ $('list').insertAdjacentHTML('beforeend',part.map(k=>'<div class="card" data-i="'+k.i+'"><div class="qr">'+qr(k)+'</div><div><div><span class="nr">'+esc(nr(k))+'</span> <span class="nm">'+esc(k.Marktname)+'</span></div><div class="ad">'+esc(k.Straße)+', '+esc(k.PLZ)+' '+esc(k.Ort)+'</div>'+(k.Besonderheit?'<div class="tag w">⚠ '+esc(k.Besonderheit)+'</div>':'')+'</div></div>').join(''));
+ $('more').hidden=shown>=res.length;
+}
+function showK(k){
+ $('dlg').innerHTML='<div class="nr">'+esc(nr(k))+'</div><h2 style="margin:2px 0">'+esc(k.Marktname)+'</h2><div class="ad">'+esc(k.Straße)+', '+esc(k.PLZ)+' '+esc(k.Ort)+'</div>'+(k.Besonderheit?'<div class="tag w" style="display:block;margin-top:8px;font-size:15px">⚠ '+esc(k.Besonderheit)+'</div>':'')+'<div class="big">'+qr(k)+'</div><div class="row" style="justify-content:center"><button class="btn p" id="pr">QR drucken</button><a class="btn" href="'+url(k)+'" target="_blank" rel="noopener">Google Maps</a><button class="btn" id="ed">✏️ Bearbeiten</button></div><dl>'+det(k)+'</dl><button class="btn" id="cl" style="width:100%">Schließen</button>';
+ $('ov').classList.add('on');
+ $('pr').onclick=()=>printLabels([k]);$('ed').onclick=()=>edit(k);$('cl').onclick=()=>$('ov').classList.remove('on');
+}
+function edit(k,draft){
+ const isNew=!D.includes(k);
+ $('dlg').innerHTML='<h2 style="margin:0 0 6px">'+(isNew?'Neuer Kunde':'Kunde bearbeiten')+'</h2>'+'<dt>Eigenes Feld hinzufügen</dt><div class="row"><input class="search" id="nf" placeholder="Feldname, z. B. Notiz" style="flex:1"><button class="btn" id="addf">＋ Feld</button></div>'+COLS.map(c=>'<dt>'+esc(c)+'</dt><input class="search" data-f="'+esc(c)+'">').join('')+'<div class="row" style="margin-top:16px"><button class="btn p" id="ok">Speichern</button><button class="btn" id="no">Abbrechen</button>'+(isNew?'':'<button class="btn d" id="del">Löschen</button>')+'</div>';
+ $('dlg').querySelectorAll('[data-f]').forEach(e=>e.value=(draft||k)[e.dataset.f]||'');
+ $('dlg').querySelectorAll('[data-c]').forEach(e=>e.checked=!!k[e.dataset.c]);
+ $('addf').onclick=()=>{const n=$('nf').value.trim();if(!n||COLS.includes(n))return;COLS.push(n);persist();const v={};$('dlg').querySelectorAll('[data-f]').forEach(e=>v[e.dataset.f]=e.value);edit(k,v)};
+ $('no').onclick=()=>isNew?$('ov').classList.remove('on'):showK(k);
+ $('ok').onclick=()=>{
+  const v={};$('dlg').querySelectorAll('[data-f]').forEach(e=>v[e.dataset.f]=e.value.trim());
+  if(!v.Marktname||!v.Straße||!v.Ort){alert('Bitte mindestens Name, Straße und Ort ausfüllen.');return}
+  $('dlg').querySelectorAll('[data-c]').forEach(e=>v[e.dataset.c]=e.checked);
+  Object.assign(k,v);if(isNew)D.unshift(k);
+  persist();
+// Barcode / QR Scanner
+let scannerStream = null;
+async function startScanner() {
+  const video = document.createElement('video');
+  video.style.cssText = 'width:100%;max-height:300px;border-radius:12px;background:#000;';
+  video.setAttribute('playsinline', '');
+  video.setAttribute('autoplay', '');
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;';
+  modal.innerHTML = '<h3 style="color:#fff;margin:0 0 1rem">Scanner</h3>';
+  modal.appendChild(video);
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn';
+  closeBtn.textContent = 'Schließen';
+  closeBtn.style.marginTop = '1rem';
+  closeBtn.onclick = stopScanner;
+  modal.appendChild(closeBtn);
+  document.body.appendChild(modal);
+  
+  try {
+    scannerStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    video.srcObject = scannerStream;
+    await video.play();
+    
+    if ('BarcodeDetector' in window) {
+      const detector = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'ean_13', 'code_39'] });
+      const scan = async () => {
+        if (!scannerStream) return;
+        try {
+          const barcodes = await detector.detect(video);
+          if (barcodes.length > 0) {
+            const value = barcodes[0].rawValue;
+            document.getElementById('q').value = value;
+            filter();
+            stopScanner();
+            return;
+          }
+        } catch(e) {}
+        requestAnimationFrame(scan);
+      };
+      scan();
+    } else {
+      alert('BarcodeDetector nicht verfügbar. Bitte Chrome/Edge verwenden oder manuell suchen.');
+    }
+  } catch(err) {
+    alert('Kamera-Zugriff verweigert oder nicht verfügbar.');
+    stopScanner();
+  }
+  
+  function stopScanner() {
+    if (scannerStream) {
+      scannerStream.getTracks().forEach(t => t.stop());
+      scannerStream = null;
+    }
+    modal.remove();
+  }
+}
+document.getElementById('scan').onclick = startScanner;
+
+reindex();filter();showK(k);
+ };
+ if(!isNew){let sure=false;$('del').onclick=()=>{if(!sure){sure=true;$('del').textContent='Wirklich löschen?';return}D.splice(D.indexOf(k),1);persist();
+// Barcode / QR Scanner
+let scannerStream = null;
+async function startScanner() {
+  const video = document.createElement('video');
+  video.style.cssText = 'width:100%;max-height:300px;border-radius:12px;background:#000;';
+  video.setAttribute('playsinline', '');
+  video.setAttribute('autoplay', '');
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;';
+  modal.innerHTML = '<h3 style="color:#fff;margin:0 0 1rem">Scanner</h3>';
+  modal.appendChild(video);
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn';
+  closeBtn.textContent = 'Schließen';
+  closeBtn.style.marginTop = '1rem';
+  closeBtn.onclick = stopScanner;
+  modal.appendChild(closeBtn);
+  document.body.appendChild(modal);
+  
+  try {
+    scannerStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    video.srcObject = scannerStream;
+    await video.play();
+    
+    if ('BarcodeDetector' in window) {
+      const detector = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'ean_13', 'code_39'] });
+      const scan = async () => {
+        if (!scannerStream) return;
+        try {
+          const barcodes = await detector.detect(video);
+          if (barcodes.length > 0) {
+            const value = barcodes[0].rawValue;
+            document.getElementById('q').value = value;
+            filter();
+            stopScanner();
+            return;
+          }
+        } catch(e) {}
+        requestAnimationFrame(scan);
+      };
+      scan();
+    } else {
+      alert('BarcodeDetector nicht verfügbar. Bitte Chrome/Edge verwenden oder manuell suchen.');
+    }
+  } catch(err) {
+    alert('Kamera-Zugriff verweigert oder nicht verfügbar.');
+    stopScanner();
+  }
+  
+  function stopScanner() {
+    if (scannerStream) {
+      scannerStream.getTracks().forEach(t => t.stop());
+      scannerStream = null;
+    }
+    modal.remove();
+  }
+}
+document.getElementById('scan').onclick = startScanner;
+
+reindex();filter();$('ov').classList.remove('on')}}
+}
+function lb(k){return '<div class="lb"><b>'+esc(nr(k))+' · '+esc(k.Marktname)+'</b><div>'+esc(k.Straße)+', '+esc(k.PLZ)+' '+esc(k.Ort)+'</div><div class="q">'+qr(k)+'</div><small>Scannen: Route in Google Maps</small></div>'}
+function printLabels(list){
+ list=list.slice(0,120);
+ $('pa').className=list.length===1?'one':'';$('pa').innerHTML=list.map(lb).join('');
+ setTimeout(()=>window.print(),50);
+}
+function saveFile(){
+ const c=document.documentElement.cloneNode(true);
+ c.querySelector('#dat').textContent=JSON.stringify({stamp:Date.now(),cols:COLS,rows:D.map(({i,h,dup,...r})=>r)}).replace(/<\//g,'<\\/');
+ ['list','dlg','pa'].forEach(id=>c.querySelector('#'+id).innerHTML='');
+ c.querySelector('#ov').className='ov';
+ const a=document.createElement('a');
+ a.href=URL.createObjectURL(new Blob(['<!DOCTYPE html>\n'+c.outerHTML],{type:'text/html'}));
+ a.download='kunden-dashboard.html';document.body.appendChild(a);a.click();a.remove();
+}
+$('q').oninput=filter;
+$('more').onclick=more;$('pall').onclick=()=>res.length&&printLabels(res);
+$('add').onclick=()=>{$('ov').classList.add('on');edit({})};
+$('sv').onclick=saveFile;
+$('list').onclick=e=>{const c=e.target.closest('.card');if(c)showK(D[c.dataset.i])};
+$('ov').onclick=e=>{if(e.target.id==='ov')$('ov').classList.remove('on')};
+
+// Barcode / QR Scanner
+let scannerStream = null;
+async function startScanner() {
+  const video = document.createElement('video');
+  video.style.cssText = 'width:100%;max-height:300px;border-radius:12px;background:#000;';
+  video.setAttribute('playsinline', '');
+  video.setAttribute('autoplay', '');
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem;';
+  modal.innerHTML = '<h3 style="color:#fff;margin:0 0 1rem">Scanner</h3>';
+  modal.appendChild(video);
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'btn';
+  closeBtn.textContent = 'Schließen';
+  closeBtn.style.marginTop = '1rem';
+  closeBtn.onclick = stopScanner;
+  modal.appendChild(closeBtn);
+  document.body.appendChild(modal);
+  
+  try {
+    scannerStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    video.srcObject = scannerStream;
+    await video.play();
+    
+    if ('BarcodeDetector' in window) {
+      const detector = new BarcodeDetector({ formats: ['qr_code', 'code_128', 'ean_13', 'code_39'] });
+      const scan = async () => {
+        if (!scannerStream) return;
+        try {
+          const barcodes = await detector.detect(video);
+          if (barcodes.length > 0) {
+            const value = barcodes[0].rawValue;
+            document.getElementById('q').value = value;
+            filter();
+            stopScanner();
+            return;
+          }
+        } catch(e) {}
+        requestAnimationFrame(scan);
+      };
+      scan();
+    } else {
+      alert('BarcodeDetector nicht verfügbar. Bitte Chrome/Edge verwenden oder manuell suchen.');
+    }
+  } catch(err) {
+    alert('Kamera-Zugriff verweigert oder nicht verfügbar.');
+    stopScanner();
+  }
+  
+  function stopScanner() {
+    if (scannerStream) {
+      scannerStream.getTracks().forEach(t => t.stop());
+      scannerStream = null;
+    }
+    modal.remove();
+  }
+}
+document.getElementById('scan').onclick = startScanner;
+
+reindex();filter();
+</script>
+</body>
+</html>
